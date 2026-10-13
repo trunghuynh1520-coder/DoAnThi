@@ -1,0 +1,309 @@
+@page "/menu"
+@inject ViewMenuItemsUseCase ViewMenuItemsUseCase
+@inject IDiningTableRepository TableRepository
+@inject PlaceTableOrderUseCase PlaceTableOrderUseCase
+@inject ScopedOrderState OrderState
+@rendermode InteractiveServer
+
+<PageTitle>Thực Đơn Món Huế - Đặt & Gọi Món</PageTitle>
+
+<div class="page-header mb-4">
+    <div class="section-label">TINH HOA ẨM THỰC HUẾ</div>
+    <h1 class="mb-1">🍜 Thực Đơn Món Huế</h1>
+    <p class="page-subtitle mb-0">Hương vị chuẩn kinh kỳ xưa, chế biến công phu, chuẩn vị truyền thống.</p>
+</div>
+
+<!-- BƯỚC 1: Chọn bàn (Bắt buộc theo chuẩn nghiệp vụ) -->
+<div class="table-selector-banner @(selectedTableId == 0 ? "banner-warning" : "banner-success") shadow-sm mb-4">
+    @if (selectedTableId == 0)
+    {
+        <div class="d-flex align-items-center flex-wrap gap-2 w-100">
+            <span class="banner-title-text">
+                ⚠️ <strong>Bước 1: Vui lòng chọn bàn đang ngồi để gọi món:</strong>
+            </span>
+            <div class="table-pills-list d-flex flex-wrap gap-2 my-1">
+                @if (availableTables != null && availableTables.Any())
+                {
+                    @foreach (var t in availableTables)
+                    {
+                        <button class="table-pill-btn" @onclick="() => SelectTable(t)">
+                            🪑 Bàn @t.TableNumber <span class="pill-cap">(@t.Capacity chỗ)</span>
+                        </button>
+                    }
+                }
+                else
+                {
+                    <span class="no-table-alert">
+                        Chưa có bàn nào đang mở. Quản trị viên cần vào <a href="/admin/tables" class="text-decoration-underline fw-bold">Sơ Đồ Bàn</a> bấm <strong>"Mở Bàn"</strong> trước.
+                    </span>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100">
+            <div class="d-flex align-items-center gap-2">
+                <span class="active-table-badge">✅ Đang gọi món</span>
+                <span class="active-table-info">
+                    <strong>Bàn số @selectedTable?.TableNumber</strong> (Sức chứa: @selectedTable?.Capacity khách)
+                </span>
+            </div>
+            <button class="table-btn-change" @onclick="() => { selectedTableId = 0; selectedTable = null; OrderState.Clear(); }">
+                🔄 Chọn lại bàn khác
+            </button>
+        </div>
+    }
+</div>
+
+<div class="row g-4">
+    <!-- CỘT TRÁI: DANH SÁCH MÓN ĂN & BỘ LỌC -->
+    <div class="col-lg-8">
+        @if (menuItems == null)
+        {
+            <div class="loading-box">
+                <div class="spinner-border text-danger" role="status"></div>
+                <p class="mt-2">Đang tải danh sách món Huế...</p>
+            </div>
+        }
+        else
+        {
+            <!-- Tabs danh mục -->
+            <div class="category-tabs mb-4">
+                <button class="cat-tab @(activeCategory == 0 ? "active" : "")" @onclick="() => activeCategory = 0">
+                    ✨ Tất cả món (@menuItems.Count())
+                </button>
+                @foreach (var cat in categories)
+                {
+                    <button class="cat-tab @(activeCategory == cat.Key ? "active" : "")"
+                            @onclick="() => activeCategory = cat.Key">
+                        @GetCategoryIcon(cat.Key) @cat.Value
+                    </button>
+                }
+            </div>
+
+            <!-- Grid món ăn -->
+            <div class="row g-3">
+                @foreach (var item in filteredItems)
+                {
+                    <div class="col-md-6">
+                        <div class="card h-100 menu-item-card">
+                            <div class="card-body d-flex flex-column p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="menu-item-icon">@GetEmoji(item.CategoryId)</div>
+                                    <span class="category-chip">@item.Category?.Name</span>
+                                </div>
+                                <h4 class="card-title text-truncate" title="@item.Name">@item.Name</h4>
+                                <p class="card-text flex-grow-1">@item.Description</p>
+                                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                    <span class="price-tag">@item.Price.ToString("N0")₫</span>
+                                    <button class="btn btn-primary btn-sm px-3"
+                                            @onclick="() => AddToOrder(item)"
+                                            disabled="@(selectedTableId == 0)">
+                                        + Thêm vào đĩa
+                                    </button>
+                                </div>
+                                @if (selectedTableId == 0)
+                                {
+                                    <small class="text-muted text-center mt-1" style="font-size:0.75rem;">
+                                        (Vui lòng chọn bàn ở trên để thêm món)
+                                    </small>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- CỘT PHẢI: GIỎ MÓN TẠI BÀN -->
+    <div class="col-lg-4">
+        <div class="order-panel shadow-sm">
+            <div class="order-panel-header d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">🛒 Phiếu Gọi Món</h3>
+                @if (selectedTableId > 0)
+                {
+                    <span class="badge bg-danger">Bàn @selectedTable?.TableNumber</span>
+                }
+            </div>
+
+            @if (selectedTableId == 0)
+            {
+                <div class="empty-state">
+                    <div class="icon">🍽️</div>
+                    <h5>Chưa chọn bàn</h5>
+                    <p class="text-muted small">Hãy chọn số bàn bạn đang ngồi ở khung phía trên để bắt đầu thêm món nhé.</p>
+                </div>
+            }
+            else if (!OrderState.SelectedItems.Any())
+            {
+                <div class="empty-state">
+                    <div class="icon">🥢</div>
+                    <h5>Đĩa món đang trống</h5>
+                    <p class="text-muted small">Chọn những món ăn thơm ngon bên trái để đặt cho Bàn @selectedTable?.TableNumber.</p>
+                </div>
+            }
+            else
+            {
+                <div class="order-items-list mb-3">
+                    @foreach (var line in OrderState.SelectedItems)
+                    {
+                        <div class="order-line-item">
+                            <div class="line-info flex-grow-1">
+                                <div class="line-name fw-semibold">@line.Item?.Name</div>
+                                <div class="line-price-unit text-muted small">@line.Price.ToString("N0")₫ / phần</div>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <button class="qty-btn" @onclick="() => ChangeQty(line, -1)" title="Giảm">−</button>
+                                    <span class="qty-num">@line.Quantity</span>
+                                    <button class="qty-btn" @onclick="() => ChangeQty(line, 1)" title="Tăng">+</button>
+                                </div>
+                            </div>
+                            <div class="line-total text-end">
+                                <span class="price-tag">@((line.Price * line.Quantity).ToString("N0"))₫</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="order-calculation border-top pt-3">
+                    <div class="calc-row d-flex justify-content-between mb-1">
+                        <span class="text-muted">Tổng tiền món:</span>
+                        <span class="fw-semibold">@(OrderState.SelectedItems.Sum(x => x.Price * x.Quantity).ToString("N0"))₫</span>
+                    </div>
+                    <div class="calc-row d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phí phục vụ (10%):</span>
+                        <span class="fw-semibold">@((OrderState.SelectedItems.Sum(x => x.Price * x.Quantity) * 0.1).ToString("N0"))₫</span>
+                    </div>
+                    <div class="order-total-row d-flex justify-content-between align-items-center border-top pt-2">
+                        <span class="fs-6 fw-bold">Tổng thanh toán:</span>
+                        <span class="price-tag-big">@((OrderState.SelectedItems.Sum(x => x.Price * x.Quantity) * 1.1).ToString("N0"))₫</span>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(orderError))
+                {
+                    <div class="alert alert-danger mt-3 py-2 small">⚠️ @orderError</div>
+                }
+                @if (!string.IsNullOrEmpty(orderSuccess))
+                {
+                    <div class="alert alert-success mt-3 py-2 small">✅ @orderSuccess</div>
+                }
+
+                <div class="d-flex gap-2 mt-3">
+                    <button class="btn btn-success flex-grow-1 py-2 fw-semibold"
+                            @onclick="ConfirmOrder"
+                            disabled="@isOrdering">
+                        @(isOrdering ? "⏳ Đang gửi đơn..." : "✅ Gửi gọi món vào bếp")
+                    </button>
+                    <button class="btn-outline-hue py-2" @onclick="ClearOrder" title="Xóa toàn bộ giỏ">
+                        Xóa
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private IEnumerable<MenuItem>? menuItems;
+    private IEnumerable<DiningTable>? availableTables;
+    private Dictionary<int, string> categories = new();
+    private int activeCategory = 0;
+    private int selectedTableId = 0;
+    private DiningTable? selectedTable;
+    private string orderError = "";
+    private string orderSuccess = "";
+    private bool isOrdering = false;
+
+    private IEnumerable<MenuItem> filteredItems =>
+        menuItems == null ? Enumerable.Empty<MenuItem>() :
+        activeCategory == 0 ? menuItems : menuItems.Where(m => m.CategoryId == activeCategory);
+
+    protected override async Task OnInitializedAsync()
+    {
+        menuItems = await ViewMenuItemsUseCase.ExecuteAsync();
+        var allTables = await TableRepository.GetTablesAsync();
+        availableTables = allTables.Where(t => t.IsOccupied);
+
+        if (menuItems != null)
+        {
+            categories = menuItems
+                .Where(m => m.Category != null)
+                .GroupBy(m => m.CategoryId)
+                .ToDictionary(g => g.Key, g => g.First().Category?.Name ?? "");
+        }
+    }
+
+    private void SelectTable(DiningTable table)
+    {
+        selectedTableId = table.TableId;
+        selectedTable = table;
+        OrderState.Clear();
+        orderError = "";
+        orderSuccess = "";
+    }
+
+    private void AddToOrder(MenuItem item)
+    {
+        if (selectedTableId == 0) return;
+        OrderState.AddItem(item, 1);
+        orderSuccess = "";
+    }
+
+    private void ChangeQty(TableOrderLine line, int delta)
+    {
+        line.Quantity += delta;
+        if (line.Quantity <= 0)
+            OrderState.SelectedItems.Remove(line);
+        StateHasChanged();
+    }
+
+    private void ClearOrder()
+    {
+        OrderState.Clear();
+        orderSuccess = "";
+        orderError = "";
+    }
+
+    private async Task ConfirmOrder()
+    {
+        if (selectedTableId == 0 || !OrderState.SelectedItems.Any()) return;
+        isOrdering = true;
+        orderError = "";
+        orderSuccess = "";
+
+        try
+        {
+            foreach (var line in OrderState.SelectedItems)
+            {
+                await PlaceTableOrderUseCase.ExecuteAsync(selectedTableId, line.ItemId, line.Price, line.Quantity);
+            }
+            orderSuccess = $"Đã gửi gọi món thành công cho Bàn {selectedTable?.TableNumber}! Nhà bếp đang chuẩn bị.";
+            OrderState.Clear();
+        }
+        catch (Exception ex)
+        {
+            orderError = "Lỗi khi gửi gọi món: " + ex.Message;
+        }
+        finally { isOrdering = false; }
+    }
+
+    private string GetEmoji(int categoryId) => categoryId switch
+    {
+        1 => "🍜",
+        2 => "🫔",
+        3 => "🍽️",
+        4 => "🍵",
+        _ => "🥢"
+    };
+
+    private string GetCategoryIcon(int categoryId) => categoryId switch
+    {
+        1 => "🍜",
+        2 => "🥟",
+        3 => "🍛",
+        4 => "🍧",
+        _ => "🍽️"
+    };
+}

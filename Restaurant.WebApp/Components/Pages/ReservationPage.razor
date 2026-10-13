@@ -1,0 +1,298 @@
+@page "/reservation"
+@using System.ComponentModel.DataAnnotations
+@using Restaurant.CoreBusiness
+@inject CreateReservationUseCase CreateReservationUseCase
+@inject IDiningTableRepository TableRepository
+@rendermode InteractiveServer
+
+<PageTitle>Đặt Bàn Trước - Nhà Hàng Món Huế</PageTitle>
+
+<div class="page-header mb-4">
+    <div class="section-label">ĐÓN TIẾP CHU ĐÁO</div>
+    <h1 class="mb-1">📅 Đặt Bàn Trước</h1>
+    <p class="page-subtitle mb-0">Đặt chỗ trước để nhận bàn đẹp nhất, không lo chờ đợi trong khung giờ vàng.</p>
+</div>
+
+@if (isSuccess)
+{
+    <div class="reservation-success-card text-center p-5 mx-auto shadow-sm">
+        <div class="success-icon mb-3">🎉</div>
+        <h2 class="success-title">Đặt Bàn Thành Công!</h2>
+        <div class="success-summary my-4 p-4 rounded text-start">
+            <div class="summary-item mb-2">
+                <span class="text-muted">Khách hàng:</span>
+                <strong class="ms-2">@confirmedName</strong>
+            </div>
+            <div class="summary-item mb-2">
+                <span class="text-muted">Số điện thoại liên hệ:</span>
+                <strong class="ms-2">@confirmedPhone</strong>
+            </div>
+            <div class="summary-item mb-2">
+                <span class="text-muted">Bàn đã đặt:</span>
+                <strong class="ms-2 text-danger">Bàn @confirmedTable</strong>
+            </div>
+            <div class="summary-item mb-2">
+                <span class="text-muted">Thời gian đến:</span>
+                <strong class="ms-2">@confirmedTime</strong>
+            </div>
+            <div class="summary-item">
+                <span class="text-muted">Số lượng khách:</span>
+                <strong class="ms-2">@confirmedGuests người</strong>
+            </div>
+        </div>
+        <p class="text-muted small mb-4">
+            Nhân viên CSKH nhà hàng sẽ liên hệ xác nhận thông tin trước 30 phút. Quý khách vui lòng đến đúng giờ.
+        </p>
+        <button class="btn btn-primary px-4 py-2" @onclick="Reset">
+            ✨ Đặt bàn tiếp theo
+        </button>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <!-- FORM ĐẶT BÀN -->
+        <div class="col-lg-7">
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger shadow-sm mb-3">⚠️ @errorMessage</div>
+            }
+
+            <div class="form-card shadow-sm">
+                <div class="form-card-header mb-4">
+                    <h3 class="mb-1">Phiếu Đăng Ký Đặt Bàn</h3>
+                    <p class="text-muted small mb-0">Điền đầy đủ thông tin để nhà hàng chuẩn bị chu đáo nhất</p>
+                </div>
+
+                <EditForm Model="@model" OnValidSubmit="HandleValidSubmit" FormName="reservationForm">
+                    <DataAnnotationsValidator />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Họ và tên quý khách <span class="text-danger">*</span></label>
+                                <InputText class="form-control" @bind-Value="model.CustomerName" placeholder="Ví dụ: Nguyễn Văn An" />
+                                <ValidationMessage For="@(() => model.CustomerName)" class="validation-message" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Số điện thoại nhận bàn <span class="text-danger">*</span></label>
+                                <InputText class="form-control" @bind-Value="model.PhoneNumber" placeholder="Ví dụ: 0912 345 678" />
+                                <ValidationMessage For="@(() => model.PhoneNumber)" class="validation-message" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Thời gian đến dùng bữa <span class="text-danger">*</span></label>
+                                <InputDate Type="InputDateType.DateTimeLocal" class="form-control" @bind-Value="model.ReservationTime" />
+                                <ValidationMessage For="@(() => model.ReservationTime)" class="validation-message" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Số lượng khách <span class="text-danger">*</span></label>
+                                <InputNumber class="form-control" @bind-Value="model.GuestCount" @oninput="OnGuestCountChanged" />
+                                <ValidationMessage For="@(() => model.GuestCount)" class="validation-message" />
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                                    <span>Chọn bàn muốn ngồi <span class="text-danger">*</span></span>
+                                    <small class="text-muted fw-normal">Bàn xanh: Phù hợp số khách</small>
+                                </label>
+
+                                @if (tables == null)
+                                {
+                                    <div class="loading-box py-3">
+                                        <div class="spinner-border spinner-border-sm text-danger" role="status"></div>
+                                        <span class="ms-2">Đang tải danh sách bàn...</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="table-picker-grid">
+                                        @foreach (var table in tables)
+                                        {
+                                            bool isSuitable = table.Capacity >= model.GuestCount;
+                                            bool isSelected = model.TableId == table.TableId;
+                                            <button type="button"
+                                                    class="table-pick-btn @(isSelected ? "selected" : "") @(!isSuitable ? "not-suitable" : "")"
+                                                    @onclick="() => model.TableId = table.TableId">
+                                                <div class="pick-btn-icon">🪑</div>
+                                                <div class="pick-btn-name">Bàn @table.TableNumber</div>
+                                                <div class="pick-btn-cap">@table.Capacity chỗ</div>
+                                                @if (!isSuitable)
+                                                {
+                                                    <div class="pick-btn-warn">Thiếu chỗ</div>
+                                                }
+                                                else if (isSelected)
+                                                {
+                                                    <div class="pick-btn-check">✓ Đã chọn</div>
+                                                }
+                                            </button>
+                                        }
+                                    </div>
+                                    @if (model.TableId == 0)
+                                    {
+                                        <div class="validation-message mt-2">Vui lòng chọn 1 bàn từ danh sách trên</div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-top mt-3">
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-6" disabled="@(isSubmitting || model.TableId == 0)">
+                            @(isSubmitting ? "⏳ Đang ghi nhận phiếu đặt..." : "📅 Xác Nhận Đặt Bàn Ngay")
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: CHÍNH SÁCH & TIỆN ÍCH -->
+        <div class="col-lg-5">
+            <div class="info-card-box mb-4 p-4 shadow-sm">
+                <h4 class="info-card-title mb-3">🏮 Tiện Ích Đặt Trước</h4>
+                <ul class="info-list">
+                    <li>✨ <strong>Giữ bàn tối đa 20 phút</strong> sau giờ hẹn đã đăng ký.</li>
+                    <li>🍲 <strong>Chuẩn bị trước thực đơn</strong> theo yêu cầu riêng của quý khách.</li>
+                    <li>🎈 <strong>Hỗ trợ trang trí tiệc</strong> sinh nhật, họp mặt gia đình, tiếp khách.</li>
+                    <li>🚗 <strong>Bãi giữ xe rộng rãi</strong> ô tô & xe máy hoàn toàn miễn phí.</li>
+                </ul>
+            </div>
+
+            <div class="info-card-box p-4 shadow-sm bg-hue-gold-light">
+                <h4 class="info-card-title mb-2">📞 Cần Hỗ Trợ Đặt Bàn Gấp?</h4>
+                <p class="text-muted small mb-3">Đối với đoàn khách từ 10 người trở lên hoặc đặt phòng VIP riêng biệt, vui lòng liên hệ hotline trực tiếp:</p>
+                <div class="hotline-badge">
+                    <span class="fs-4">☎️</span>
+                    <div>
+                        <div class="hotline-number">1900 6868 - 0988 123 456</div>
+                        <small class="text-muted">Trực máy: 07:30 - 23:00 hàng ngày</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private ReservationModel model = new();
+    private IEnumerable<DiningTable>? tables;
+    private bool isSuccess = false;
+    private bool isSubmitting = false;
+    private string errorMessage = "";
+
+    private string confirmedName = "";
+    private string confirmedPhone = "";
+    private string confirmedTable = "";
+    private string confirmedTime = "";
+    private int confirmedGuests = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        model.ReservationTime = DateTime.Now.AddHours(2);
+        try
+        {
+            tables = await TableRepository.GetTablesAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Không thể tải danh sách bàn: " + ex.Message;
+        }
+    }
+
+    private void OnGuestCountChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int val))
+        {
+            model.GuestCount = val;
+            // Nếu bàn đang chọn không đủ sức chứa thì reset chọn bàn
+            var currentTable = tables?.FirstOrDefault(t => t.TableId == model.TableId);
+            if (currentTable != null && currentTable.Capacity < val)
+            {
+                model.TableId = 0;
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (model.TableId == 0)
+        {
+            errorMessage = "Vui lòng chọn bàn phù hợp với số lượng khách!";
+            return;
+        }
+
+        isSubmitting = true;
+        errorMessage = "";
+
+        try
+        {
+            var reservation = new Reservation
+            {
+                CustomerName = model.CustomerName,
+                PhoneNumber = model.PhoneNumber,
+                ReservationTime = model.ReservationTime,
+                GuestCount = model.GuestCount,
+                TableId = model.TableId
+            };
+
+            await CreateReservationUseCase.ExecuteAsync(reservation);
+
+            var bookedTable = tables?.FirstOrDefault(t => t.TableId == model.TableId);
+            confirmedName = model.CustomerName;
+            confirmedPhone = model.PhoneNumber;
+            confirmedTable = bookedTable?.TableNumber.ToString() ?? model.TableId.ToString();
+            confirmedTime = model.ReservationTime.ToString("dd/MM/yyyy HH:mm");
+            confirmedGuests = model.GuestCount;
+            isSuccess = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Lỗi khi lưu đặt bàn: " + ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void Reset()
+    {
+        model = new ReservationModel
+        {
+            ReservationTime = DateTime.Now.AddHours(2),
+            GuestCount = 2
+        };
+        isSuccess = false;
+        errorMessage = "";
+    }
+
+    public class ReservationModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập họ tên của bạn")]
+        [StringLength(50, ErrorMessage = "Tên không quá 50 ký tự")]
+        public string CustomerName { get; set; } = "";
+
+        [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
+        [Phone(ErrorMessage = "Số điện thoại không đúng định dạng")]
+        public string PhoneNumber { get; set; } = "";
+
+        [Required(ErrorMessage = "Vui lòng chọn thời gian")]
+        public DateTime ReservationTime { get; set; } = DateTime.Now.AddHours(2);
+
+        [Range(1, 20, ErrorMessage = "Số khách phải từ 1 đến 20 người")]
+        public int GuestCount { get; set; } = 2;
+
+        [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn bàn")]
+        public int TableId { get; set; } = 0;
+    }
+}

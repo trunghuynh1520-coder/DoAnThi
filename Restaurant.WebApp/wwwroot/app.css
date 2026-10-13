@@ -1,0 +1,1285 @@
+/* =========================================================
+   NHÀ HÀNG MÓN HUẾ - BỘ DESIGN SYSTEM HOÀNG GIA ĐẲNG CẤP
+   Fonts: Playfair Display (Tiêu đề) + Inter (Văn bản & Nút)
+========================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Bảng màu cung đình Huế */
+    --hue-red: #8B1E1E;
+    --hue-red-dark: #661212;
+    --hue-red-light: #ab2828;
+    --hue-gold: #C8952A;
+    --hue-gold-light: #FBF4E6;
+    --hue-gold-hover: #b07f1d;
+    --hue-dark: #1E0F07;
+    --hue-dark-surface: #29150B;
+    --hue-cream: #FAF6F0;
+    --hue-cream-card: #FFFFFF;
+    
+    /* Chữ */
+    --text-primary: #2C1A0E;
+    --text-muted: #6E5C50;
+    --text-light: #FAF6F0;
+    
+    /* Viền & bóng */
+    --border-color: rgba(200, 149, 42, 0.22);
+    --border-hover: rgba(200, 149, 42, 0.55);
+    --shadow-sm: 0 2px 8px rgba(30, 15, 7, 0.05);
+    --shadow-md: 0 6px 20px rgba(30, 15, 7, 0.08);
+    --shadow-lg: 0 12px 36px rgba(30, 15, 7, 0.12);
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+}
+
+/* =========================================================
+   1. RESET & CẤU TRÚC CHÍNH (LAYOUT)
+========================================================= */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--hue-cream);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+.page {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* =========================================================
+   2. SIDEBAR HOÀNG GIA (THANH ĐIỀU HƯỚNG BÊN TRÁI)
+========================================================= */
+.sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: linear-gradient(180deg, var(--hue-dark) 0%, #150802 100%);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(200, 149, 42, 0.2);
+    z-index: 100;
+}
+
+.sidebar-header {
+    padding: 1.8rem 1.4rem 1.4rem;
+    border-bottom: 1px solid rgba(200, 149, 42, 0.2);
+    background: rgba(200, 149, 42, 0.04);
+}
+
+.brand-container {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.brand-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 6px rgba(200, 149, 42, 0.4));
+}
+
+.brand-title {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--hue-gold);
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+}
+
+.brand-subtitle {
+    display: block;
+    font-size: 0.72rem;
+    color: #bda38f;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.navbar-toggler, .navbar-toggler-btn {
+    display: none;
+}
+
+.nav-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.2rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.nav-section-title {
+    font-size: 0.72rem;
+    color: #8c7362;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    padding: 0.6rem 0.8rem 0.3rem;
+}
+
+.nav-divider {
+    height: 1px;
+    background: rgba(200, 149, 42, 0.15);
+    margin: 1rem 0.5rem;
+}
+
+.nav-item {
+    margin-bottom: 0.3rem;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: #d6c1b0 !important;
+    text-decoration: none !important;
+    border-radius: var(--radius-sm);
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link:hover {
+    background: rgba(200, 149, 42, 0.12);
+    color: var(--hue-gold) !important;
+    transform: translateX(3px);
+}
+
+.nav-link.active {
+    background: linear-gradient(90deg, rgba(139, 30, 30, 0.5) 0%, rgba(200, 149, 42, 0.25) 100%);
+    color: #FFF !important;
+    border-left: 3.5px solid var(--hue-gold);
+    font-weight: 600;
+}
+
+.nav-icon {
+    font-size: 1.15rem;
+}
+
+.sidebar-footer-card {
+    background: rgba(200, 149, 42, 0.08);
+    border: 1px solid rgba(200, 149, 42, 0.2);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.support-title {
+    font-size: 0.76rem;
+    color: #c9ad99;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.2rem;
+}
+
+.support-phone {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--hue-gold);
+    font-family: 'Playfair Display', serif;
+}
+
+.support-desc {
+    font-size: 0.72rem;
+    color: #8c7362;
+}
+
+/* =========================================================
+   3. MAIN HEADER & KHU VỰC TOP ROW
+========================================================= */
+.main-content-area {
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.top-row {
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    box-shadow: 0 2px 10px rgba(30, 15, 7, 0.03);
+}
+
+.restaurant-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--hue-red);
+    background: #FDF5ED;
+    border: 1px solid rgba(139, 30, 30, 0.2);
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+}
+
+.top-row-right {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.user-greeting {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.badge-role {
+    background: var(--hue-gold);
+    color: #FFF;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.btn-top-logout {
+    color: #b73232 !important;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid rgba(183, 50, 50, 0.3);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+.btn-top-logout:hover {
+    background: #FFF0F0;
+    border-color: #b73232;
+}
+
+.btn-top-login {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: linear-gradient(135deg, var(--hue-red) 0%, #a62626 100%);
+    color: #FFF !important;
+    text-decoration: none !important;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 0.45rem 1.1rem;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 6px rgba(139, 30, 30, 0.25);
+    transition: all 0.2s;
+}
+
+.btn-top-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 30, 30, 0.35);
+}
+
+/* =========================================================
+   4. CONTENT & FOOTER
+========================================================= */
+.content {
+    flex: 1;
+    padding: 2.2rem 2.8rem;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.main-footer {
+    background: #FFFFFF;
+    border-top: 1px solid var(--border-color);
+    padding: 1.2rem 2.8rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.footer-status {
+    color: var(--hue-gold);
+    font-weight: 600;
+}
+
+/* =========================================================
+   5. TIÊU ĐỀ & TYPOGRAPHY
+========================================================= */
+h1, h2, h3, h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: var(--hue-dark);
+}
+
+h1 {
+    font-size: 2.3rem;
+    font-weight: 700;
+    color: var(--hue-red);
+    letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+.section-label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--hue-gold);
+    margin-bottom: 0.3rem;
+}
+
+/* =========================================================
+   6. HERO SECTION TRANG CHỦ
+========================================================= */
+.hero-section {
+    background: linear-gradient(135deg, var(--hue-red) 0%, #681111 60%, var(--hue-dark) 100%);
+    color: #FFF;
+    padding: 4rem 3.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(200, 149, 42, 0.3);
+}
+
+.hero-section::before {
+    content: "🏮";
+    position: absolute;
+    right: 2.5rem;
+    bottom: -1rem;
+    font-size: 12rem;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+.hero-content {
+    max-width: 680px;
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 3.2rem;
+    color: #FFF;
+    margin-bottom: 1rem;
+    line-height: 1.15;
+}
+
+.hero-desc {
+    font-size: 1.15rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2rem;
+    font-weight: 300;
+    line-height: 1.7;
+}
+
+.quick-links {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-hero-primary {
+    background: linear-gradient(135deg, var(--hue-gold) 0%, #a8791c 100%);
+    color: #FFF !important;
+    text-decoration: none !important;
+    padding: 0.85rem 1.8rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(200, 149, 42, 0.4);
+    transition: all 0.2s;
+}
+
+.btn-hero-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(200, 149, 42, 0.5);
+}
+
+.btn-hero-secondary {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    color: #FFF !important;
+    text-decoration: none !important;
+    padding: 0.85rem 1.8rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+    transition: all 0.2s;
+}
+
+.btn-hero-secondary:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: #FFF;
+}
+
+.hero-floating-badge {
+    position: absolute;
+    right: 3.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+}
+
+.badge-inner {
+    background: rgba(255, 255, 255, 0.12);
+    border: 2px solid var(--hue-gold);
+    backdrop-filter: blur(8px);
+    padding: 1.8rem;
+    border-radius: 50%;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.badge-num {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--hue-gold);
+    line-height: 1;
+}
+
+.badge-txt {
+    font-size: 0.72rem;
+    color: #FFF;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+}
+
+/* =========================================================
+   7. CARDS & GRID TÍNH NĂNG (FEATURE CARDS)
+========================================================= */
+.feature-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 2.2rem 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--hue-gold);
+}
+
+.highlighted-card {
+    border-color: rgba(200, 149, 42, 0.45);
+    background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF8 100%);
+}
+
+.feature-icon-wrapper {
+    font-size: 3rem;
+    margin-bottom: 1.2rem;
+    line-height: 1;
+}
+
+.feature-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--hue-red);
+    margin-bottom: 0.8rem;
+}
+
+.feature-text {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    flex-grow: 1;
+    margin-bottom: 1.5rem;
+}
+
+.feature-link {
+    color: var(--hue-red);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.feature-link:hover {
+    color: var(--hue-gold);
+    transform: translateX(4px);
+    display: inline-block;
+}
+
+/* Banner quy trình */
+.workflow-banner {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.workflow-title {
+    text-align: center;
+    color: var(--hue-dark);
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.workflow-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.workflow-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.step-num {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--hue-red) 0%, #a82424 100%);
+    color: #FFF;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(139, 30, 30, 0.3);
+}
+
+.step-text strong {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.step-text p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.workflow-arrow {
+    color: var(--hue-gold);
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* =========================================================
+   8. MENU PAGE (THỰC ĐƠN & GỌI MÓN)
+========================================================= */
+.table-selector-banner {
+    padding: 1.1rem 1.5rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+}
+
+.banner-warning {
+    background: #FFF9ED;
+    border: 1.5px solid #F3C769;
+    color: #6A440D;
+}
+
+.banner-success {
+    background: #EDF7EE;
+    border: 1.5px solid #66BB6A;
+    color: #1E4620;
+}
+
+.table-pill-btn {
+    background: #FFFFFF;
+    border: 1.5px solid #F3C769;
+    color: var(--text-primary);
+    padding: 0.45rem 1rem;
+    border-radius: 20px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    transition: all 0.15s;
+}
+
+.table-pill-btn:hover {
+    background: var(--hue-red);
+    border-color: var(--hue-red);
+    color: #FFF;
+    transform: translateY(-1px);
+}
+
+.table-btn-change {
+    background: transparent;
+    border: 1.5px solid #2e7d32;
+    color: #2e7d32;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.table-btn-change:hover {
+    background: #2e7d32;
+    color: #FFF;
+}
+
+.active-table-badge {
+    background: #2e7d32;
+    color: #FFF;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+/* Category tabs */
+.category-tabs {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.cat-tab {
+    padding: 0.5rem 1.2rem;
+    border-radius: 24px;
+    border: 1.5px solid var(--border-color);
+    background: #FFFFFF;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cat-tab:hover {
+    border-color: var(--hue-gold);
+    color: var(--hue-gold);
+}
+
+.cat-tab.active {
+    background: linear-gradient(135deg, var(--hue-red) 0%, #a82424 100%);
+    border-color: var(--hue-red);
+    color: #FFF;
+    font-weight: 600;
+    box-shadow: 0 3px 10px rgba(139, 30, 30, 0.25);
+}
+
+/* Menu item cards */
+.menu-item-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+}
+
+.menu-item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-hover);
+}
+
+.menu-item-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+.category-chip {
+    background: #F8F3ED;
+    color: var(--hue-gold);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.price-tag {
+    color: var(--hue-red);
+    font-weight: 700;
+    font-size: 1.15rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.price-tag-big {
+    color: var(--hue-red);
+    font-weight: 800;
+    font-size: 1.35rem;
+    font-family: 'Playfair Display', serif;
+}
+
+/* Order panel */
+.order-panel {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.6rem;
+    position: sticky;
+    top: 5.5rem;
+}
+
+.order-line-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.qty-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-color);
+    background: #FFFFFF;
+    color: var(--hue-red);
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.qty-btn:hover {
+    background: var(--hue-red);
+    color: #FFF;
+    border-color: var(--hue-red);
+}
+
+.qty-num {
+    font-weight: 600;
+    font-size: 0.95rem;
+    min-width: 22px;
+    text-align: center;
+}
+
+/* =========================================================
+   9. ADMIN TABLES (SƠ ĐỒ BÀN)
+========================================================= */
+.stat-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.4rem 1.6rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+}
+
+.stat-icon {
+    font-size: 2.2rem;
+}
+
+.stat-number {
+    font-size: 2.4rem;
+    font-weight: 800;
+    font-family: 'Playfair Display', serif;
+    color: var(--hue-red);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.stat-occupied .stat-number { color: #d32f2f; }
+.stat-free .stat-number { color: #2e7d32; }
+
+.table-map-card {
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+}
+
+.table-card-occupied {
+    border-left: 6px solid #d32f2f !important;
+    background: linear-gradient(135deg, #FFFFFF 70%, #FFF5F5);
+}
+
+.table-card-free {
+    border-left: 6px solid #2e7d32 !important;
+    background: linear-gradient(135deg, #FFFFFF 70%, #F5FFF6);
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.status-occupied {
+    background: #FFEBEE;
+    color: #c62828;
+}
+
+.status-free {
+    background: #E8F5E9;
+    color: #2e7d32;
+}
+
+.table-avatar {
+    font-size: 1.8rem;
+}
+
+.table-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--hue-dark);
+}
+
+.table-capacity-text {
+    font-size: 0.86rem;
+    color: var(--text-muted);
+}
+
+.instruction-box {
+    background: #FFFDF8;
+    border: 1.5px solid rgba(200, 149, 42, 0.3);
+    border-radius: var(--radius-md);
+    padding: 1.2rem 1.6rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.instruction-icon {
+    font-size: 1.8rem;
+}
+
+.instruction-text {
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    line-height: 1.7;
+}
+
+/* =========================================================
+   10. RESERVATION PAGE (ĐẶT BÀN TRƯỚC)
+========================================================= */
+.form-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 2.2rem;
+}
+
+.form-control {
+    border: 1.5px solid #E2D7CC;
+    border-radius: var(--radius-sm);
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    border-color: var(--hue-gold);
+    box-shadow: 0 0 0 3px rgba(200, 149, 42, 0.18);
+    outline: none;
+}
+
+.table-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.table-pick-btn {
+    border: 1.5px solid var(--border-color);
+    background: #FFFFFF;
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.table-pick-btn:hover {
+    border-color: var(--hue-gold);
+    background: #FFFDF8;
+}
+
+.table-pick-btn.selected {
+    background: linear-gradient(135deg, var(--hue-red) 0%, #a82424 100%);
+    border-color: var(--hue-red);
+    color: #FFF;
+    box-shadow: 0 4px 12px rgba(139, 30, 30, 0.3);
+}
+
+.table-pick-btn.selected .pick-btn-cap {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.table-pick-btn.not-suitable {
+    opacity: 0.45;
+    pointer-events: none;
+    background: #F5F5F5;
+}
+
+.pick-btn-icon {
+    font-size: 1.3rem;
+}
+
+.pick-btn-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.pick-btn-cap {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.pick-btn-warn {
+    font-size: 0.68rem;
+    color: #c62828;
+    font-weight: 600;
+}
+
+.pick-btn-check {
+    font-size: 0.72rem;
+    color: #FFF;
+    font-weight: 600;
+}
+
+.info-card-box {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.info-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--hue-red);
+}
+
+.info-list {
+    padding-left: 1.2rem;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 2;
+    color: var(--text-primary);
+}
+
+.bg-hue-gold-light {
+    background: #FFFBF3;
+    border-color: rgba(200, 149, 42, 0.35);
+}
+
+.hotline-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.hotline-number {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--hue-red);
+    font-family: 'Playfair Display', serif;
+}
+
+.reservation-success-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    max-width: 620px;
+}
+
+.success-icon {
+    font-size: 4rem;
+    line-height: 1;
+}
+
+.success-title {
+    font-size: 2rem;
+    color: var(--hue-red);
+}
+
+.success-summary {
+    background: #FFFDF8;
+    border: 1px solid var(--border-color);
+}
+
+/* =========================================================
+   11. NÚT BẤM (BUTTONS) & TIỆN ÍCH CHUNG
+========================================================= */
+.btn-primary, .btn-hue {
+    background: linear-gradient(135deg, var(--hue-red) 0%, #a82424 100%) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary:hover, .btn-hue:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(139, 30, 30, 0.35);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #2E7D32 0%, #388E3C 100%) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+.btn-success:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #c62828 0%, #e53935 100%) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.btn-outline-hue {
+    border: 1.5px solid var(--hue-red);
+    color: var(--hue-red);
+    background: transparent;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-outline-hue:hover {
+    background: var(--hue-red);
+    color: #FFFFFF;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+}
+
+.empty-state .icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.loading-box {
+    text-align: center;
+    padding: 3.5rem 1rem;
+    color: var(--text-muted);
+}
+
+.validation-message {
+    color: #c62828;
+    font-size: 0.82rem;
+    margin-top: 0.25rem;
+}
+
+/* =========================================================
+   12. TRANG ĐĂNG NHẬP (LOGIN PAGE)
+========================================================= */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 120px);
+}
+
+.login-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2.8rem 2.4rem;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: var(--shadow-lg);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-logo {
+    font-size: 3.5rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.login-form .form-group {
+    margin-bottom: 1.2rem;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 0.85rem;
+    background: linear-gradient(135deg, var(--hue-red) 0%, #a82424 100%);
+    color: #FFFFFF;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-login:hover {
+    box-shadow: 0 6px 16px rgba(139, 30, 30, 0.35);
+    transform: translateY(-1px);
+}
+
+.auth-error {
+    background: #FFEBEE;
+    color: #c62828;
+    border: 1px solid #FFCDD2;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* =========================================================
+   13. BLAZOR ERROR UI (Kín đáo & Tinh tế)
+========================================================= */
+#blazor-error-ui {
+    background: #FFF8E1;
+    color: #5D4037;
+    border-top: 2px solid var(--hue-gold);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.8rem 1.5rem;
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.1);
+    font-size: 0.9rem;
+}
+
+#blazor-error-ui .reload {
+    color: var(--hue-red);
+    font-weight: 700;
+    margin-left: 0.5rem;
+    text-decoration: underline;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    float: right;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* =========================================================
+   14. RESPONSIVE DESIGN (MOBILE & TABLET)
+========================================================= */
+@media (max-width: 991.98px) {
+    .page {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+    }
+
+    .navbar-toggler-btn {
+        display: block;
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        z-index: 101;
+    }
+
+    .navbar-toggler-btn span {
+        display: block;
+        width: 24px;
+        height: 2.5px;
+        background: var(--hue-gold);
+        margin: 5px 0;
+        border-radius: 2px;
+    }
+
+    .nav-scrollable {
+        display: none;
+    }
+
+    .navbar-toggler:checked ~ .nav-scrollable {
+        display: flex;
+    }
+
+    .content {
+        padding: 1.5rem 1rem;
+    }
+
+    .top-row {
+        padding: 0.75rem 1rem;
+    }
+
+    .hero-section {
+        padding: 2.5rem 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 2.2rem;
+    }
+
+    .hero-floating-badge {
+        display: none;
+    }
+}

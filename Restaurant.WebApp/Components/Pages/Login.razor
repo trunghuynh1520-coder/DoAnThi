@@ -1,0 +1,37 @@
+@page "/login"
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
+
+<PageTitle>Đăng nhập Admin - Nhà Hàng Món Huế</PageTitle>
+
+@if (Request.Query.ContainsKey("error"))
+{
+    <div class="auth-error">Sai tên đăng nhập hoặc mật khẩu. Vui lòng thử lại.</div>
+}
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="login-logo">🍜</div>
+            <h1>Nhà Hàng Món Huế</h1>
+            <p>Đăng nhập dành cho Quản trị viên</p>
+        </div>
+        <form method="post" action="/login" class="login-form">
+            <AntiforgeryToken />
+            <div class="form-group">
+                <label>Tên đăng nhập</label>
+                <input type="text" name="username" class="form-input" placeholder="Nhập tên đăng nhập" required />
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input type="password" name="password" class="form-input" placeholder="Nhập mật khẩu" required />
+            </div>
+            <p class="hint">Tài khoản demo: admin / admin</p>
+            <button type="submit" class="btn-login">Đăng nhập</button>
+        </form>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] HttpContext? HttpContext { get; set; }
+    HttpRequest Request => HttpContext!.Request;
+}

@@ -1,0 +1,71 @@
+<div class="sidebar-header">
+    <div class="brand-container">
+        <span class="brand-icon">🏮</span>
+        <div class="brand-text">
+            <span class="brand-title">Món Huế</span>
+            <span class="brand-subtitle">Ẩm Thực Hoàng Gia</span>
+        </div>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" id="nav-toggle-check" />
+<label class="navbar-toggler-btn" for="nav-toggle-check">
+    <span></span>
+    <span></span>
+    <span></span>
+</label>
+
+<div class="nav-scrollable">
+    <nav class="nav flex-column">
+        <div class="nav-section-title">Khách hàng</div>
+
+        <div class="nav-item">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Trang Chủ</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-item">
+            <NavLink class="nav-link" href="menu">
+                <span class="nav-icon">🍜</span>
+                <span class="nav-text">Thực Đơn Món Huế</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-item">
+            <NavLink class="nav-link" href="reservation">
+                <span class="nav-icon">📅</span>
+                <span class="nav-text">Đặt Bàn Trước</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-divider"></div>
+
+        <div class="nav-section-title">Hệ thống & Quản lý</div>
+
+        <div class="nav-item">
+            <NavLink class="nav-link" href="admin/tables">
+                <span class="nav-icon">🪑</span>
+                <span class="nav-text">Sơ Đồ Bàn (Thu ngân)</span>
+            </NavLink>
+        </div>
+
+        <AuthorizeView>
+            <NotAuthorized>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="login">
+                        <span class="nav-icon">🔐</span>
+                        <span class="nav-text">Đăng Nhập Quản Trị</span>
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </nav>
+
+    <div class="sidebar-footer-card">
+        <div class="support-title">📞 Hotline Đặt Chỗ</div>
+        <div class="support-phone">1900 6868</div>
+        <small class="support-desc">Phục vụ 24/7 tận tình</small>
+    </div>
+</div>
