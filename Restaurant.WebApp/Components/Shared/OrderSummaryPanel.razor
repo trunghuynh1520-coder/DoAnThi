@@ -1,0 +1,140 @@
+<div class="order-panel shadow-sm">
+    <div class="order-panel-header d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">🛒 Phiếu Gọi Món</h3>
+        @if (TableNumber != null)
+        {
+            <span class="badge bg-danger">Bàn @TableNumber</span>
+        }
+    </div>
+
+    @if (TableId == 0)
+    {
+        <div class="empty-state">
+            <div class="icon">🍽️</div>
+            <h5>Chưa chọn bàn</h5>
+            <p class="text-muted small">Hãy chọn số bàn bạn đang ngồi ở khung phía trên để bắt đầu thêm món nhé.</p>
+        </div>
+    }
+    else if (!Items.Any())
+    {
+        <div class="empty-state">
+            <div class="icon">🥢</div>
+            <h5>Đĩa món đang trống</h5>
+            <p class="text-muted small">Chọn những món ăn thơm ngon bên trái để đặt cho Bàn @TableNumber.</p>
+        </div>
+    }
+    else
+    {
+        <div class="order-items-list mb-3">
+            @foreach (var line in Items)
+            {
+                <div class="order-line-item">
+                    <div class="line-info flex-grow-1">
+                        <div class="line-name fw-semibold">@line.Item?.Name</div>
+                        <div class="line-price-unit text-muted small">@line.Price.ToString("N0")₫ / phần</div>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <button class="qty-btn" @onclick="() => ChangeQuantity(line, -1)" title="Giảm">−</button>
+                            <span class="qty-num">@line.Quantity</span>
+                            <button class="qty-btn" @onclick="() => ChangeQuantity(line, 1)" title="Tăng">+</button>
+                        </div>
+                    </div>
+                    <div class="line-total text-end">
+                        <span class="price-tag">@((line.Price * line.Quantity).ToString("N0"))₫</span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="order-calculation border-top pt-3">
+            <div class="calc-row d-flex justify-content-between mb-1">
+                <span class="text-muted">Tổng tiền món:</span>
+                <span class="fw-semibold">@SubTotal.ToString("N0")₫</span>
+            </div>
+            <div class="calc-row d-flex justify-content-between mb-2">
+                <span class="text-muted">Phí phục vụ (10%):</span>
+                <span class="fw-semibold">@ServiceFee.ToString("N0")₫</span>
+            </div>
+            <div class="order-total-row d-flex justify-content-between align-items-center border-top pt-2">
+                <span class="fs-6 fw-bold">Tổng thanh toán:</span>
+                <span class="price-tag-big">@TotalAmount.ToString("N0")₫</span>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-danger mt-3 py-2 small">⚠️ @ErrorMessage</div>
+        }
+        @if (!string.IsNullOrEmpty(SuccessMessage))
+        {
+            <div class="alert alert-success mt-3 py-2 small">✅ @SuccessMessage</div>
+        }
+
+        <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-success flex-grow-1 py-2 fw-semibold"
+                    @onclick="HandleConfirm"
+                    disabled="@IsOrdering">
+                @(IsOrdering ? "⏳ Đang gửi đơn..." : "✅ Gửi gọi món vào bếp")
+            </button>
+            <button class="btn-outline-hue py-2" @onclick="HandleClear" title="Xóa toàn bộ giỏ">
+                Xóa
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int TableId { get; set; }
+
+    [Parameter]
+    public string? TableNumber { get; set; }
+
+    [Parameter]
+    public List<TableOrderLine> Items { get; set; } = new();
+
+    [Parameter]
+    public bool IsOrdering { get; set; } = false;
+
+    [Parameter]
+    public string ErrorMessage { get; set; } = "";
+
+    [Parameter]
+    public string SuccessMessage { get; set; } = "";
+
+    [Parameter]
+    public EventCallback OnConfirm { get; set; }
+
+    [Parameter]
+    public EventCallback OnClear { get; set; }
+
+    [Parameter]
+    public EventCallback<(TableOrderLine Line, int Delta)> OnQuantityChanged { get; set; }
+
+    private double SubTotal => Items.Sum(x => x.Price * x.Quantity);
+    private double ServiceFee => SubTotal * 0.1;
+    private double TotalAmount => SubTotal + ServiceFee;
+
+    private async Task ChangeQuantity(TableOrderLine line, int delta)
+    {
+        if (OnQuantityChanged.HasDelegate)
+        {
+            await OnQuantityChanged.InvokeAsync((line, delta));
+        }
+    }
+
+    private async Task HandleConfirm()
+    {
+        if (OnConfirm.HasDelegate)
+        {
+            await OnConfirm.InvokeAsync();
+        }
+    }
+
+    private async Task HandleClear()
+    {
+        if (OnClear.HasDelegate)
+        {
+            await OnClear.InvokeAsync();
+        }
+    }
+}

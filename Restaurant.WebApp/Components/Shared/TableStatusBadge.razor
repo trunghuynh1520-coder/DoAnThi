@@ -1,0 +1,14 @@
+<span class="status-badge @(IsOccupied ? "status-occupied" : "status-free")">
+    @(IsOccupied ? (OccupiedText ?? "Đang phục vụ") : (FreeText ?? "Bàn trống"))
+</span>
+
+@code {
+    [Parameter]
+    public bool IsOccupied { get; set; }
+
+    [Parameter]
+    public string? OccupiedText { get; set; }
+
+    [Parameter]
+    public string? FreeText { get; set; }
+}

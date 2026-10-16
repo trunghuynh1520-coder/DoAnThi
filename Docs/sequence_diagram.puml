@@ -1,0 +1,61 @@
+@startuml
+title Sequence Diagram - Luồng Gọi Món & Thanh Toán (Đề tài 11)
+
+autonumber
+actor "Khách Hàng" as User
+participant "Menu.razor" as UI
+participant "ScopedOrderState" as State
+participant "PlaceTableOrderUseCase" as PlaceUC
+participant "TableOrder (Entity)" as Entity
+participant "TableOrderRepository" as Repo
+database "SQL Server" as DB
+actor "Thu Ngân" as Cashier
+participant "Tables.razor" as AdminUI
+participant "CloseTableOrderUseCase" as CloseUC
+
+== 1. Khách Hàng Gọi Món Tại Bàn ==
+User -> UI: Chọn Bàn (đang Mở) & Thêm món vào giỏ
+UI -> State: AddItem(menuItem, quantity)
+User -> UI: Bấm "Gửi gọi món vào bếp"
+UI -> PlaceUC: ExecuteAsync(tableId, itemId, price, quantity)
+PlaceUC -> Repo: GetActiveOrderForTableAsync(tableId)
+Repo -> DB: SELECT TableOrder & Lines
+DB --> Repo: activeOrder
+Repo --> PlaceUC: activeOrder
+
+PlaceUC -> Entity: AddLineItem(itemId, price, qty, table)
+note right of Entity
+  **Luật nghiệp vụ 2 (CoreBusiness):**
+  1. Bàn phải đang Mở (IsOccupied == true)
+  2. Order chưa bị đóng (IsClosed == false)
+end note
+
+alt Bàn chưa mở hoặc Đã đóng bill
+    Entity --> PlaceUC: throw InvalidOperationException
+    PlaceUC --> UI: Hiển thị thông báo lỗi thân thiện (K3.3)
+else Hợp lệ
+    PlaceUC -> Repo: SaveOrderAsync() / UpdateOrderAsync()
+    Repo -> DB: **BEGIN TRANSACTION** (K2.2)
+    Repo -> DB: INSERT/UPDATE TableOrder
+    Repo -> DB: INSERT TableOrderLine
+    Repo -> DB: **COMMIT TRANSACTION**
+    DB --> Repo: Success
+    Repo --> PlaceUC: Success
+    PlaceUC --> UI: "Đã gửi gọi món thành công"
+end
+
+== 2. Thu Ngân Đóng Bill & Thanh Toán ==
+Cashier -> AdminUI: Nhấn "Đóng Bill & Thanh Toán"
+AdminUI -> CloseUC: ExecuteAsync(tableId)
+CloseUC -> Repo: GetActiveOrderForTableAsync(tableId)
+Repo --> CloseUC: activeOrder
+CloseUC -> Entity: CloseOrder()
+note right of Entity
+  **Tính toán hóa đơn:**
+  TotalAmount = SubTotal + 10% Phí phục vụ
+  IsClosed = true
+end note
+CloseUC -> Repo: UpdateOrderAsync(activeOrder)
+CloseUC -> Repo: UpdateTableStatusAsync(tableId, isOccupied: false)
+CloseUC --> AdminUI: "Đã thanh toán & Bàn trở về trạng thái trống"
+@enduml

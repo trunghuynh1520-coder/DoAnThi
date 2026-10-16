@@ -38,6 +38,7 @@ builder.Services.AddTransient<ViewMenuItemsUseCase>();
 builder.Services.AddTransient<CreateReservationUseCase>();
 builder.Services.AddTransient<PlaceTableOrderUseCase>();
 builder.Services.AddTransient<CloseTableOrderUseCase>();
+builder.Services.AddTransient<ExportBillUseCase>();
 
 // 5. Scoped State (ShoppingCart equivalent)
 builder.Services.AddScoped<ScopedOrderState>();

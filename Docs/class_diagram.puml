@@ -1,0 +1,117 @@
+@startuml
+title Class Diagram (Clean Architecture) - Đề tài 11: Nhà Hàng Món Huế
+
+package "CoreBusiness (Entities & Rules)" {
+    class DiningTable {
+        +int TableId
+        +string TableNumber
+        +int Capacity
+        +bool IsOccupied
+    }
+
+    class MenuItem {
+        +int ItemId
+        +int CategoryId
+        +string Name
+        +string Description
+        +double Price
+        +string ImageUrl
+        +MenuCategory Category
+    }
+
+    class MenuCategory {
+        +int CategoryId
+        +string Name
+        +string Description
+    }
+
+    class Reservation {
+        +int ReservationId
+        +int TableId
+        +string CustomerName
+        +string PhoneNumber
+        +DateTime ReservationTime
+        +int GuestCount
+        +DiningTable Table
+        +bool IsValidReservation(DiningTable table, List<Reservation> existing)
+    }
+
+    class TableOrder {
+        +int OrderId
+        +int TableId
+        +DateTime OrderDate
+        +bool IsClosed
+        +double TotalAmount
+        +List<TableOrderLine> OrderLines
+        +void AddLineItem(int itemId, double price, int qty, DiningTable table)
+        +void CloseOrder()
+    }
+
+    class TableOrderLine {
+        +int OrderLineId
+        +int OrderId
+        +int ItemId
+        +double Price
+        +int Quantity
+        +MenuItem Item
+    }
+
+    MenuItem "n" --> "1" MenuCategory
+    TableOrder "1" *-- "n" TableOrderLine
+    TableOrderLine "n" --> "1" MenuItem
+    TableOrder "n" --> "1" DiningTable
+    Reservation "n" --> "1" DiningTable
+}
+
+package "UseCases (Application Logic & Interfaces)" {
+    interface IMenuItemRepository {
+        +GetMenuItemsAsync()
+        +GetMenuItemByIdAsync(id)
+    }
+    interface IDiningTableRepository {
+        +GetTablesAsync()
+        +GetTableByIdAsync(id)
+        +UpdateTableStatusAsync(id, isOccupied)
+        +OpenTableAsync(id)
+    }
+    interface ITableOrderRepository {
+        +GetActiveOrderForTableAsync(tableId)
+        +SaveOrderAsync(order)
+        +UpdateOrderAsync(order)
+    }
+    interface IReservationRepository {
+        +AddReservationAsync(reservation)
+        +GetReservationsForTableAsync(tableId)
+    }
+
+    class PlaceTableOrderUseCase {
+        +ExecuteAsync(tableId, itemId, price, quantity)
+    }
+    class CreateReservationUseCase {
+        +ExecuteAsync(reservation)
+    }
+    class CloseTableOrderUseCase {
+        +ExecuteAsync(tableId)
+    }
+    class ExportBillUseCase {
+        +ExecuteAsync(tableId): Task<string>
+    }
+
+    PlaceTableOrderUseCase ..> ITableOrderRepository
+    PlaceTableOrderUseCase ..> IDiningTableRepository
+    CreateReservationUseCase ..> IReservationRepository
+    CreateReservationUseCase ..> IDiningTableRepository
+    CloseTableOrderUseCase ..> ITableOrderRepository
+    CloseTableOrderUseCase ..> IDiningTableRepository
+    ExportBillUseCase ..> ITableOrderRepository
+    ExportBillUseCase ..> IMenuItemRepository
+}
+
+package "Plugins.DataStore.SQL (Infrastructure)" {
+    class TableOrderRepository implements ITableOrderRepository
+    class DiningTableRepository implements IDiningTableRepository
+    class MenuItemRepository implements IMenuItemRepository
+    class ReservationRepository implements IReservationRepository
+}
+
+@enduml

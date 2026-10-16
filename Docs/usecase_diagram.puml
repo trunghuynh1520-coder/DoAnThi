@@ -1,0 +1,36 @@
+@startuml
+title Use Case Diagram - Đề tài 11: Nhà Hàng Món Huế
+
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Khách Hàng" as Customer
+actor "Thu Ngân / Quản Lý" as Admin
+
+rectangle "Hệ Thống Nhà Hàng Món Huế" {
+    usecase "UC01: Xem Thực Đơn Món Huế" as UC_ViewMenu
+    usecase "UC02: Đặt Bàn Trước (Kiểm tra sức chứa & 2h)" as UC_Reservation
+    usecase "UC03: Gọi Món Tại Bàn (Bàn đang Mở)" as UC_PlaceOrder
+    usecase "UC04: Xem & Điều Phối Sơ Đồ Bàn" as UC_ManageTables
+    usecase "UC05: Mở Bàn Mới (Đón khách)" as UC_OpenTable
+    usecase "UC06: Xuất Hóa Đơn Chi Tiết" as UC_ExportBill
+    usecase "UC07: Đóng Hóa Đơn & Thanh Toán (Phí 10%)" as UC_CloseOrder
+    usecase "Đăng Nhập Quản Trị (Cookie Auth)" as UC_Login
+}
+
+Customer --> UC_ViewMenu
+Customer --> UC_Reservation
+Customer --> UC_PlaceOrder
+
+Admin --> UC_Login
+Admin --> UC_ManageTables
+Admin --> UC_OpenTable
+Admin --> UC_ExportBill
+Admin --> UC_CloseOrder
+
+UC_ManageTables ..> UC_Login : <<include>>
+UC_OpenTable ..> UC_Login : <<include>>
+UC_CloseOrder ..> UC_Login : <<include>>
+UC_ExportBill ..> UC_Login : <<include>>
+
+@enduml
