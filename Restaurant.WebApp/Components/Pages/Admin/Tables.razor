@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin")]
 @inject IDiningTableRepository TableRepository
+@inject IReservationRepository ReservationRepository
 @inject CloseTableOrderUseCase CloseTableOrderUseCase
 @inject ExportBillUseCase ExportBillUseCase
 @inject IJSRuntime JSRuntime
@@ -42,7 +43,7 @@ else
 {
     <!-- THỐNG KÊ NHANH -->
     <div class="row g-3 mb-4">
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <div class="stat-card">
                 <div class="stat-icon">🪑</div>
                 <div class="stat-content">
@@ -51,7 +52,7 @@ else
                 </div>
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <div class="stat-card stat-occupied">
                 <div class="stat-icon">🔴</div>
                 <div class="stat-content">
@@ -60,12 +61,21 @@ else
                 </div>
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <div class="stat-card stat-free">
                 <div class="stat-icon">🟢</div>
                 <div class="stat-content">
                     <div class="stat-number">@tables.Count(t => !t.IsOccupied)</div>
                     <div class="stat-label">Bàn sẵn sàng đón khách</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="stat-card" style="border-left: 4px solid #f59e0b;">
+                <div class="stat-icon">📅</div>
+                <div class="stat-content">
+                    <div class="stat-number">@(todayReservations?.Count() ?? 0)</div>
+                    <div class="stat-label">Đặt bàn hôm nay</div>
                 </div>
             </div>
         </div>
@@ -76,20 +86,48 @@ else
         <div class="row g-3">
             @foreach (var table in tables.OrderBy(t => t.TableNumber))
             {
+                var tableReservations = todayReservations?.Where(r => r.TableId == table.TableId).ToList() ?? new();
                 <div class="col-sm-6 col-md-4 col-lg-3">
-                    <div class="card table-map-card @(table.IsOccupied ? "table-card-occupied" : "table-card-free") h-100">
+                    <div class="card table-map-card @(table.IsOccupied ? "table-card-occupied" : tableReservations.Any() ? "table-card-reserved" : "table-card-free") h-100">
                         <div class="card-body p-3 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="table-avatar">@(table.IsOccupied ? "👥" : "🪑")</span>
-                                    <TableStatusBadge IsOccupied="@table.IsOccupied"
-                                                      OccupiedText="Đang phục vụ"
-                                                      FreeText="Bàn trống" />
+                                    <span class="table-avatar">@(table.IsOccupied ? "👥" : tableReservations.Any() ? "📅" : "🪑")</span>
+                                    @if (table.IsOccupied)
+                                    {
+                                        <TableStatusBadge IsOccupied="@table.IsOccupied"
+                                                          OccupiedText="Đang phục vụ"
+                                                          FreeText="Bàn trống" />
+                                    }
+                                    else if (tableReservations.Any())
+                                    {
+                                        <span class="badge" style="background:#f59e0b;color:#fff;font-size:0.72rem;">📅 Đã đặt trước</span>
+                                    }
+                                    else
+                                    {
+                                        <TableStatusBadge IsOccupied="@table.IsOccupied"
+                                                          OccupiedText="Đang phục vụ"
+                                                          FreeText="Bàn trống" />
+                                    }
                                 </div>
                                 <h4 class="table-title mb-1">Bàn @table.TableNumber</h4>
                                 <div class="table-capacity-text">
                                     <span>👥 Sức chứa: <strong>@table.Capacity người</strong></span>
                                 </div>
+
+                                @if (tableReservations.Any())
+                                {
+                                    <div class="mt-2 p-2 rounded" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);">
+                                        @foreach (var res in tableReservations)
+                                        {
+                                            <div style="font-size:0.78rem;color:#92400e;">
+                                                📋 <strong>@res.CustomerName</strong><br />
+                                                🕐 @res.ReservationTime.ToString("HH:mm") &nbsp;|&nbsp; 👥 @res.GuestCount khách<br />
+                                                📞 @res.PhoneNumber
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </div>
 
                             <div class="table-action-box mt-3 d-flex flex-column gap-2">
@@ -122,6 +160,54 @@ else
         </div>
     </div>
 
+    <!-- DANH SÁCH ĐẶT BÀN HÔM NAY -->
+    <div class="mt-5">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <span style="font-size:1.4rem;">📋</span>
+            <h2 class="mb-0" style="font-size:1.3rem;font-weight:700;">Danh Sách Khách Đặt Bàn Hôm Nay</h2>
+            <span class="badge bg-warning text-dark ms-1">@(todayReservations?.Count() ?? 0) lượt</span>
+        </div>
+
+        @if (todayReservations == null || !todayReservations.Any())
+        {
+            <div class="instruction-box">
+                <div class="instruction-icon">📅</div>
+                <div class="instruction-text">Chưa có lịch đặt bàn nào cho hôm nay. Khách đặt qua trang <a href="/reservation" class="fw-bold">Đặt Bàn</a>.</div>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" style="background:var(--card-bg,#1e1e2e);border-radius:12px;overflow:hidden;">
+                    <thead style="background:rgba(212,163,82,0.15);">
+                        <tr>
+                            <th style="color:var(--color-gold,#d4a352);">#</th>
+                            <th style="color:var(--color-gold,#d4a352);">Khách hàng</th>
+                            <th style="color:var(--color-gold,#d4a352);">Số điện thoại</th>
+                            <th style="color:var(--color-gold,#d4a352);">Bàn</th>
+                            <th style="color:var(--color-gold,#d4a352);">Giờ đến</th>
+                            <th style="color:var(--color-gold,#d4a352);">Số khách</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{int idx = 1;}
+                        @foreach (var res in todayReservations.OrderBy(r => r.ReservationTime))
+                        {
+                            <tr>
+                                <td style="color:#aaa;">@(idx++)</td>
+                                <td><strong>@res.CustomerName</strong></td>
+                                <td>📞 @res.PhoneNumber</td>
+                                <td>🪑 Bàn @(res.Table?.TableNumber ?? res.TableId.ToString())</td>
+                                <td>🕐 <strong>@res.ReservationTime.ToString("HH:mm")</strong></td>
+                                <td>👥 @res.GuestCount người</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
     <div class="instruction-box mt-4">
         <div class="instruction-icon">💡</div>
         <div class="instruction-text">
@@ -136,6 +222,7 @@ else
 
 @code {
     private IEnumerable<DiningTable>? tables;
+    private IEnumerable<Reservation>? todayReservations;
     private string errorMessage = "";
     private string successMessage = "";
     private bool isLoading = false;
@@ -149,6 +236,7 @@ else
         try
         {
             tables = await TableRepository.GetTablesAsync();
+            todayReservations = await ReservationRepository.GetTodayReservationsAsync();
         }
         catch (Exception ex)
         {
@@ -228,3 +316,4 @@ else
         }
     }
 }
+

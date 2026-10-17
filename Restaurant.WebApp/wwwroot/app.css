@@ -844,6 +844,11 @@ h1 {
     background: linear-gradient(135deg, #FFFFFF 70%, #F5FFF6);
 }
 
+.table-card-reserved {
+    border-left: 6px solid #f59e0b !important;
+    background: linear-gradient(135deg, #FFFFFF 70%, #FFFBEB);
+}
+
 .status-badge {
     padding: 4px 12px;
     border-radius: 20px;

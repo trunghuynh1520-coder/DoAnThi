@@ -180,10 +180,11 @@
 
         try
         {
-            foreach (var line in OrderState.SelectedItems)
-            {
-                await PlaceTableOrderUseCase.ExecuteAsync(selectedTableId, line.ItemId, line.Price, line.Quantity);
-            }
+            // Gộp toàn bộ danh sách món vào 1 lần gọi duy nhất (atomic) - tránh cross-table bug
+            var items = OrderState.SelectedItems
+                .Select(line => (line.ItemId, line.Price, line.Quantity))
+                .ToList();
+            await PlaceTableOrderUseCase.ExecuteAsync(selectedTableId, items);
             orderSuccess = $"Đã gửi gọi món thành công cho Bàn {selectedTable?.TableNumber}! Nhà bếp đang chuẩn bị.";
             OrderState.Clear();
         }

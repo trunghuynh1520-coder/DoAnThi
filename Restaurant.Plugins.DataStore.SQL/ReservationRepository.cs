@@ -36,4 +36,21 @@ public class ReservationRepository : IReservationRepository
         string sql = "SELECT * FROM Reservation WHERE TableId = @tableId AND CAST(ReservationTime as DATE) = CAST(GETDATE() as DATE)";
         return await connection.QueryAsync<Reservation>(sql, new { tableId });
     }
+
+    public async Task<IEnumerable<Reservation>> GetTodayReservationsAsync()
+    {
+        using var connection = new SqlConnection(_connectionString);
+        // Lấy toàn bộ lịch đặt bàn hôm nay, join với bàn để lấy TableNumber
+        string sql = @"
+            SELECT r.*, t.TableNumber, t.Capacity
+            FROM Reservation r
+            INNER JOIN DiningTable t ON r.TableId = t.TableId
+            WHERE CAST(r.ReservationTime AS DATE) = CAST(GETDATE() AS DATE)
+            ORDER BY r.ReservationTime";
+        return await connection.QueryAsync<Reservation, DiningTable, Reservation>(
+            sql,
+            (reservation, table) => { reservation.Table = table; return reservation; },
+            splitOn: "TableNumber"
+        );
+    }
 }

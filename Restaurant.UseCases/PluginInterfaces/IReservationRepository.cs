@@ -13,4 +13,5 @@ public interface IReservationRepository
 {
     Task<IEnumerable<Reservation>> GetReservationsForTableAsync(int tableId);
     Task AddReservationAsync(Reservation reservation);
+    Task<IEnumerable<Reservation>> GetTodayReservationsAsync();
 }
