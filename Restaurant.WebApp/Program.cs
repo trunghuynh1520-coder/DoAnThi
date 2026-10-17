@@ -45,6 +45,9 @@ builder.Services.AddScoped<ScopedOrderState>();
 
 var app = builder.Build();
 
+// Add the table service timer column to existing databases without requiring a rebuild.
+await new DiningTableRepository(connectionString).EnsureTableTimingSchemaAsync();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

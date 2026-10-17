@@ -21,6 +21,15 @@ public class DiningTableRepository : IDiningTableRepository
         _connectionString = connectionString;
     }
 
+    public async Task EnsureTableTimingSchemaAsync()
+    {
+        using var connection = new SqlConnection(_connectionString);
+        const string sql = @"
+IF COL_LENGTH('dbo.DiningTable', 'OccupiedSince') IS NULL
+    ALTER TABLE dbo.DiningTable ADD OccupiedSince DATETIME2 NULL;";
+        await connection.ExecuteAsync(sql);
+    }
+
     public async Task<IEnumerable<DiningTable>> GetTablesAsync()
     {
         using var connection = new SqlConnection(_connectionString);
@@ -38,14 +47,17 @@ public class DiningTableRepository : IDiningTableRepository
     public async Task UpdateTableStatusAsync(int tableId, bool isOccupied)
     {
         using var connection = new SqlConnection(_connectionString);
-        string sql = "UPDATE DiningTable SET IsOccupied = @isOccupied WHERE TableId = @tableId";
+        string sql = @"UPDATE DiningTable
+                       SET IsOccupied = @isOccupied,
+                           OccupiedSince = CASE WHEN @isOccupied = 1 THEN COALESCE(OccupiedSince, GETDATE()) ELSE NULL END
+                       WHERE TableId = @tableId";
         await connection.ExecuteAsync(sql, new { isOccupied, tableId });
     }
 
     public async Task OpenTableAsync(int tableId)
     {
         using var connection = new SqlConnection(_connectionString);
-        string sql = "UPDATE DiningTable SET IsOccupied = 1 WHERE TableId = @tableId";
+        string sql = "UPDATE DiningTable SET IsOccupied = 1, OccupiedSince = GETDATE() WHERE TableId = @tableId";
         await connection.ExecuteAsync(sql, new { tableId });
     }
 }

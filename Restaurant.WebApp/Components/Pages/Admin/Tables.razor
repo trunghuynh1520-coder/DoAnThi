@@ -86,7 +86,11 @@ else
         <div class="row g-3">
             @foreach (var table in tables.OrderBy(t => t.TableNumber))
             {
-                var tableReservations = todayReservations?.Where(r => r.TableId == table.TableId).ToList() ?? new();
+                var now = DateTime.Now;
+                var tableReservations = todayReservations?.Where(r =>
+                    r.TableId == table.TableId &&
+                    r.ReservationTime >= now.AddHours(-2) &&
+                    r.ReservationTime <= now.AddHours(2)).ToList() ?? new();
                 <div class="col-sm-6 col-md-4 col-lg-3">
                     <div class="card table-map-card @(table.IsOccupied ? "table-card-occupied" : tableReservations.Any() ? "table-card-reserved" : "table-card-free") h-100">
                         <div class="card-body p-3 d-flex flex-column justify-content-between">
@@ -114,6 +118,14 @@ else
                                 <div class="table-capacity-text">
                                     <span>👥 Sức chứa: <strong>@table.Capacity người</strong></span>
                                 </div>
+
+                                @if (table.IsOccupied && table.OccupiedSince.HasValue)
+                                {
+                                    <div class="mt-2 small text-muted">
+                                        ⏱️ Phục vụ từ @table.OccupiedSince.Value.ToString("HH:mm")
+                                        · @FormatElapsed(table.OccupiedSince.Value)
+                                    </div>
+                                }
 
                                 @if (tableReservations.Any())
                                 {
@@ -226,6 +238,13 @@ else
     private string errorMessage = "";
     private string successMessage = "";
     private bool isLoading = false;
+
+    private static string FormatElapsed(DateTime startedAt)
+    {
+        var elapsed = DateTime.Now - startedAt;
+        if (elapsed < TimeSpan.Zero) elapsed = TimeSpan.Zero;
+        return $"{(int)elapsed.TotalHours:00}:{elapsed.Minutes:00}";
+    }
 
     protected override async Task OnInitializedAsync() => await LoadTables();
 

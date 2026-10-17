@@ -22,7 +22,8 @@ CREATE TABLE DiningTable (
     TableId INT IDENTITY(1,1) PRIMARY KEY,
     TableNumber NVARCHAR(20) NOT NULL,
     Capacity INT NOT NULL,
-    IsOccupied BIT NOT NULL DEFAULT 0
+    IsOccupied BIT NOT NULL DEFAULT 0,
+    OccupiedSince DATETIME2 NULL
 );
 
 CREATE TABLE Reservation (
