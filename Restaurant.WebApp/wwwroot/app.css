@@ -1426,3 +1426,39 @@ h1, h2, h3, h4, h5, h6,
         -webkit-overflow-scrolling: touch;
     }
 }
+
+@media (max-width: 575.98px) {
+    .top-row {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 0.65rem;
+    }
+
+    .top-row-left,
+    .top-row-right {
+        width: 100%;
+    }
+
+    .restaurant-badge {
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .top-row-right {
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .user-greeting {
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        font-size: 0.82rem;
+    }
+
+    .btn-top-logout,
+    .btn-top-login {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 0.35rem 0.6rem;
+    }
+}
