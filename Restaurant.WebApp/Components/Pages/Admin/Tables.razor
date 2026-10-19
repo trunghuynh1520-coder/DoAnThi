@@ -5,6 +5,8 @@
 @inject IReservationRepository ReservationRepository
 @inject CloseTableOrderUseCase CloseTableOrderUseCase
 @inject ExportBillUseCase ExportBillUseCase
+@inject ITableOrderRepository OrderRepository
+@inject IConfiguration Configuration
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
@@ -92,7 +94,7 @@ else
                         <div class="card-body p-3 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="table-avatar">@(table.IsOccupied ? "👥" : tableReservations.Any() ? "📅" : "🪑")</span>
+                                    <span class="table-avatar">@(table.IsOccupied ? "👥" : "🪑")</span>
                                     @if (table.IsOccupied)
                                     {
                                         <TableStatusBadge IsOccupied="@table.IsOccupied"
@@ -101,7 +103,7 @@ else
                                     }
                                     else if (tableReservations.Any())
                                     {
-                                        <span class="badge" style="background:#f59e0b;color:#fff;font-size:0.72rem;">📅 Đã đặt trước</span>
+                                        <span class="badge table-reservation-badge">@(IsReservationInGracePeriod(table.TableId) ? "Đang giữ bàn" : "Có lịch sắp tới")</span>
                                     }
                                     else
                                     {
@@ -115,18 +117,9 @@ else
                                     <span>👥 Sức chứa: <strong>@table.Capacity người</strong></span>
                                 </div>
 
-                                @if (tableReservations.Any())
+                                @if (!table.IsOccupied && tableReservations.Any())
                                 {
-                                    <div class="mt-2 p-2 rounded" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);">
-                                        @foreach (var res in tableReservations)
-                                        {
-                                            <div style="font-size:0.78rem;color:#92400e;">
-                                                📋 <strong>@res.CustomerName</strong><br />
-                                                🕐 @res.ReservationTime.ToString("HH:mm") &nbsp;|&nbsp; 👥 @res.GuestCount khách<br />
-                                                📞 @res.PhoneNumber
-                                            </div>
-                                        }
-                                    </div>
+                                    <p class="table-reservation-note mt-2 mb-0">Thông tin khách và giờ hẹn nằm trong danh sách bên dưới.</p>
                                 }
                             </div>
 
@@ -162,10 +155,23 @@ else
 
     <!-- DANH SÁCH ĐẶT BÀN HÔM NAY -->
     <div class="mt-5">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <span style="font-size:1.4rem;">📋</span>
-            <h2 class="mb-0" style="font-size:1.3rem;font-weight:700;">Danh Sách Khách Đặt Bàn Hôm Nay</h2>
-            <span class="badge bg-warning text-dark ms-1">@(todayReservations?.Count() ?? 0) lượt</span>
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <span style="font-size:1.4rem;">📋</span>
+                <div>
+                    <h2 class="mb-0" style="font-size:1.3rem;font-weight:700;">Lịch đặt bàn hôm nay</h2>
+                    <span class="small text-muted">@(FilteredReservations.Count()) / @(todayReservations?.Count() ?? 0) lượt</span>
+                </div>
+            </div>
+            <div class="reservation-filters">
+                <input class="form-control" type="search" placeholder="Tìm tên, số điện thoại hoặc bàn..." @bind="reservationSearch" @bind:event="oninput" aria-label="Tìm lịch đặt bàn" />
+                <select class="form-select" @bind="reservationFilter" aria-label="Lọc lịch đặt bàn">
+                    <option value="all">Tất cả lịch</option>
+                    <option value="upcoming">Sắp đến</option>
+                    <option value="grace">Đang giữ bàn</option>
+                    <option value="elapsed">Quá giờ giữ bàn</option>
+                </select>
+            </div>
         </div>
 
         @if (todayReservations == null || !todayReservations.Any())
@@ -187,11 +193,12 @@ else
                             <th style="color:var(--color-gold,#d4a352);">Bàn</th>
                             <th style="color:var(--color-gold,#d4a352);">Giờ đến</th>
                             <th style="color:var(--color-gold,#d4a352);">Số khách</th>
+                            <th style="color:var(--color-gold,#d4a352);">Tình trạng</th>
                         </tr>
                     </thead>
                     <tbody>
                         @{int idx = 1;}
-                        @foreach (var res in todayReservations.OrderBy(r => r.ReservationTime))
+                        @foreach (var res in FilteredReservations.OrderBy(r => r.ReservationTime))
                         {
                             <tr>
                                 <td style="color:#aaa;">@(idx++)</td>
@@ -200,11 +207,16 @@ else
                                 <td>🪑 Bàn @(res.Table?.TableNumber ?? res.TableId.ToString())</td>
                                 <td>🕐 <strong>@res.ReservationTime.ToString("HH:mm")</strong></td>
                                 <td>👥 @res.GuestCount người</td>
+                                <td><span class="badge @GetReservationStatusClass(res)">@GetReservationStatus(res)</span></td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
+            @if (!FilteredReservations.Any())
+            {
+                <div class="instruction-box"><div class="instruction-icon">🔎</div><div class="instruction-text">Không tìm thấy lịch đặt bàn phù hợp với bộ lọc hiện tại.</div></div>
+            }
         }
     </div>
 
@@ -226,12 +238,61 @@ else
     private string errorMessage = "";
     private string successMessage = "";
     private bool isLoading = false;
+    private string reservationSearch = string.Empty;
+    private string reservationFilter = "all";
+
+    private IEnumerable<Reservation> FilteredReservations
+    {
+        get
+        {
+            IEnumerable<Reservation> results = todayReservations ?? Enumerable.Empty<Reservation>();
+            var now = DateTime.Now;
+            results = reservationFilter switch
+            {
+                "upcoming" => results.Where(r => r.ReservationTime > now),
+                "grace" => results.Where(r => r.ReservationTime <= now && r.ReservationTime >= now.AddMinutes(-20)),
+                "elapsed" => results.Where(r => r.ReservationTime < now.AddMinutes(-20)),
+                _ => results
+            };
+
+            if (!string.IsNullOrWhiteSpace(reservationSearch))
+            {
+                var term = reservationSearch.Trim();
+                results = results.Where(r =>
+                    r.CustomerName.Contains(term, StringComparison.CurrentCultureIgnoreCase) ||
+                    r.PhoneNumber.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    (r.Table?.TableNumber?.Contains(term, StringComparison.CurrentCultureIgnoreCase) ?? false));
+            }
+
+            return results;
+        }
+    }
 
     private List<Reservation> GetUpcomingReservations(int tableId)
     {
         var now = DateTime.Now;
-        return todayReservations?.Where(r => r.TableId == tableId && r.ReservationTime >= now && r.ReservationTime <= now.AddHours(2)).ToList() ?? new();
+        var holdUntil = now.AddMinutes(-20);
+        return todayReservations?.Where(r => r.TableId == tableId && r.ReservationTime >= holdUntil && r.ReservationTime <= now.AddHours(2)).ToList() ?? new();
     }
+
+    private bool IsReservationInGracePeriod(int tableId) =>
+        todayReservations?.Any(r => r.TableId == tableId && r.ReservationTime <= DateTime.Now && r.ReservationTime >= DateTime.Now.AddMinutes(-20)) == true;
+
+    private static string GetReservationStatus(Reservation reservation)
+    {
+        var now = DateTime.Now;
+        if (reservation.ReservationTime > now) return "Sắp đến";
+        if (reservation.ReservationTime >= now.AddMinutes(-20)) return "Đang giữ bàn";
+        return "Quá giờ giữ bàn";
+    }
+
+    private static string GetReservationStatusClass(Reservation reservation) =>
+        GetReservationStatus(reservation) switch
+        {
+            "Sắp đến" => "reservation-status-upcoming",
+            "Đang giữ bàn" => "reservation-status-grace",
+            _ => "reservation-status-past"
+        };
 
     private bool IsReadyForWalkIn(DiningTable table) => !table.IsOccupied && GetUpcomingReservations(table.TableId).Count == 0;
 
@@ -304,14 +365,29 @@ else
 
     private async Task CloseBill(int tableId)
     {
+        if (isLoading) return;
         isLoading = true;
         errorMessage = "";
         successMessage = "";
         try
         {
+            var order = await OrderRepository.GetActiveOrderForTableAsync(tableId);
+            if (order == null)
+            {
+                errorMessage = "Không tìm thấy hóa đơn đang mở cho bàn này.";
+                return;
+            }
+
+            var serviceFeeRate = Configuration.GetValue<double>("Restaurant:ServiceFeeRate", 0.10);
+            var subtotal = order.OrderLines.Sum(line => line.Price * line.Quantity);
+            var serviceFee = subtotal * serviceFeeRate;
+            var total = subtotal + serviceFee;
+            var tableNumber = tables?.FirstOrDefault(t => t.TableId == tableId)?.TableNumber;
+            var confirmMessage = $"Xác nhận thanh toán Bàn {tableNumber}?\n\nTạm tính: {subtotal:N0}₫\nPhí phục vụ ({serviceFeeRate:P0}): {serviceFee:N0}₫\nTổng thanh toán: {total:N0}₫\n\nSau khi xác nhận, hóa đơn sẽ đóng và bàn được trả về trạng thái trống.";
+            if (!await JSRuntime.InvokeAsync<bool>("confirm", confirmMessage)) return;
+
             await CloseTableOrderUseCase.ExecuteAsync(tableId);
-            var table = tables?.FirstOrDefault(t => t.TableId == tableId);
-            successMessage = $"Đã thanh toán và đóng hóa đơn Bàn {table?.TableNumber}. Bàn đã trở về trạng thái trống.";
+            successMessage = $"Đã thanh toán và đóng hóa đơn Bàn {tableNumber}. Bàn đã trở về trạng thái trống.";
             await LoadTables();
         }
         catch (Exception ex)
