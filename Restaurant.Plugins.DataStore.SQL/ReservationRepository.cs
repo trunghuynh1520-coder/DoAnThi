@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -30,11 +31,14 @@ public class ReservationRepository : IReservationRepository
         await connection.ExecuteAsync(sql, reservation);
     }
 
-    public async Task<IEnumerable<Reservation>> GetReservationsForTableAsync(int tableId)
+    public async Task<IEnumerable<Reservation>> GetReservationsForTableAsync(int tableId, DateTime reservationTime)
     {
         using var connection = new SqlConnection(_connectionString);
-        string sql = "SELECT * FROM Reservation WHERE TableId = @tableId AND CAST(ReservationTime as DATE) = CAST(GETDATE() as DATE)";
-        return await connection.QueryAsync<Reservation>(sql, new { tableId });
+        const string sql = @"SELECT * FROM Reservation
+                             WHERE TableId = @tableId
+                               AND ReservationTime >= DATEADD(hour, -2, @reservationTime)
+                               AND ReservationTime <= DATEADD(hour, 2, @reservationTime)";
+        return await connection.QueryAsync<Reservation>(sql, new { tableId, reservationTime });
     }
 
     public async Task<IEnumerable<Reservation>> GetTodayReservationsAsync()

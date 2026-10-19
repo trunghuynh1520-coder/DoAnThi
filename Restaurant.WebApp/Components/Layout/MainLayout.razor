@@ -16,7 +16,7 @@
                         <div class="user-greeting">
                             <span class="avatar-icon">👑</span>
                             <span>Xin chào, <strong>@authContext.User.Identity?.Name</strong></span>
-                            <span class="badge-role">Quản trị viên</span>
+                            <span class="badge-role">@(authContext.User.IsInRole("Admin") ? "Quản trị viên" : "Người dùng")</span>
                         </div>
                         <a href="/logout" class="btn-top-logout">
                             <span>Đăng xuất</span> ➜
@@ -24,7 +24,7 @@
                     </Authorized>
                     <NotAuthorized>
                         <a href="/login" class="btn-top-login">
-                            <span>🔐 Đăng nhập Quản trị</span>
+                            <span>🔐 Đăng nhập</span>
                         </a>
                     </NotAuthorized>
                 </AuthorizeView>

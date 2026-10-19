@@ -13,11 +13,13 @@ public class CloseTableOrderUseCase
 {
     private readonly ITableOrderRepository _orderRepository;
     private readonly IDiningTableRepository _tableRepository;
+    private readonly double _serviceFeeRate;
 
-    public CloseTableOrderUseCase(ITableOrderRepository orderRepository, IDiningTableRepository tableRepository)
+    public CloseTableOrderUseCase(ITableOrderRepository orderRepository, IDiningTableRepository tableRepository, double serviceFeeRate)
     {
         _orderRepository = orderRepository;
         _tableRepository = tableRepository;
+        _serviceFeeRate = serviceFeeRate;
     }
 
     public async Task ExecuteAsync(int tableId)
@@ -26,7 +28,7 @@ public class CloseTableOrderUseCase
         if (activeOrder == null) throw new Exception("Không tìm thấy hóa đơn nào đang mở cho bàn này.");
 
         // Gọi Business Rule để đóng hóa đơn và tính tổng tiền
-        activeOrder.CloseOrder();
+        activeOrder.CloseOrder(_serviceFeeRate);
 
         await _orderRepository.UpdateOrderAsync(activeOrder);
         

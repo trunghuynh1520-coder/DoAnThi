@@ -123,7 +123,7 @@
 
     private IEnumerable<MenuItem> filteredItems =>
         menuItems == null ? Enumerable.Empty<MenuItem>() :
-        activeCategory == 0 ? menuItems : menuItems.Where(m => m.CategoryId == activeCategory);
+        activeCategory == 0 ? menuItems.Where(m => m.IsAvailable) : menuItems.Where(m => m.IsAvailable && m.CategoryId == activeCategory);
 
     protected override async Task OnInitializedAsync()
     {
@@ -134,9 +134,9 @@
         if (menuItems != null)
         {
             categories = menuItems
-                .Where(m => m.Category != null)
+                .Where(m => !string.IsNullOrWhiteSpace(m.CategoryName))
                 .GroupBy(m => m.CategoryId)
-                .ToDictionary(g => g.Key, g => g.First().Category?.Name ?? "");
+                .ToDictionary(g => g.Key, g => g.First().CategoryName);
         }
     }
 

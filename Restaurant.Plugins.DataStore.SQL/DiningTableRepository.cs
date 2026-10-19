@@ -21,12 +21,14 @@ public class DiningTableRepository : IDiningTableRepository
         _connectionString = connectionString;
     }
 
-    public async Task EnsureTableTimingSchemaAsync()
+    public async Task EnsureApplicationSchemaAsync()
     {
         using var connection = new SqlConnection(_connectionString);
         const string sql = @"
 IF COL_LENGTH('dbo.DiningTable', 'OccupiedSince') IS NULL
-    ALTER TABLE dbo.DiningTable ADD OccupiedSince DATETIME2 NULL;";
+    ALTER TABLE dbo.DiningTable ADD OccupiedSince DATETIME2 NULL;
+IF COL_LENGTH('dbo.MenuItem', 'IsAvailable') IS NULL
+    ALTER TABLE dbo.MenuItem ADD IsAvailable BIT NOT NULL CONSTRAINT DF_MenuItem_IsAvailable DEFAULT 1;";
         await connection.ExecuteAsync(sql);
     }
 

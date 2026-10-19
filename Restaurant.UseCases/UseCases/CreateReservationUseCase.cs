@@ -30,7 +30,8 @@ public class CreateReservationUseCase
             throw new Exception("Bàn không tồn tại.");
 
         // Lấy danh sách các đặt bàn trước của bàn này để kiểm tra trùng lịch
-        var existingReservations = (await _reservationRepository.GetReservationsForTableAsync(reservation.TableId)).ToList();
+        var existingReservations = (await _reservationRepository
+            .GetReservationsForTableAsync(reservation.TableId, reservation.ReservationTime)).ToList();
 
         // Kiểm tra Business Rule 1 (từ CoreBusiness)
         if (!reservation.IsValidReservation(table, existingReservations))

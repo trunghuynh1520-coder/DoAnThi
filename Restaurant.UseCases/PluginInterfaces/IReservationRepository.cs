@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
 using Restaurant.CoreBusiness;
 
@@ -11,7 +12,7 @@ namespace Restaurant.UseCases.PluginInterfaces;
 /// </summary>
 public interface IReservationRepository
 {
-    Task<IEnumerable<Reservation>> GetReservationsForTableAsync(int tableId);
+    Task<IEnumerable<Reservation>> GetReservationsForTableAsync(int tableId, DateTime reservationTime);
     Task AddReservationAsync(Reservation reservation);
     Task<IEnumerable<Reservation>> GetTodayReservationsAsync();
 }

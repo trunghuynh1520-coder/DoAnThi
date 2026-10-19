@@ -65,7 +65,7 @@ else
             <div class="stat-card stat-free">
                 <div class="stat-icon">🟢</div>
                 <div class="stat-content">
-                    <div class="stat-number">@tables.Count(t => !t.IsOccupied)</div>
+                    <div class="stat-number">@tables.Count(IsReadyForWalkIn)</div>
                     <div class="stat-label">Bàn sẵn sàng đón khách</div>
                 </div>
             </div>
@@ -86,12 +86,7 @@ else
         <div class="row g-3">
             @foreach (var table in tables.OrderBy(t => t.TableNumber))
             {
-                var now = DateTime.Now;
-                // Keep only upcoming reservations on the map; past visits stay in the history table below.
-                var tableReservations = todayReservations?.Where(r =>
-                    r.TableId == table.TableId &&
-                    r.ReservationTime >= now &&
-                    r.ReservationTime <= now.AddHours(2)).ToList() ?? new();
+                var tableReservations = GetUpcomingReservations(table.TableId);
                 <div class="col-sm-6 col-md-4 col-lg-3">
                     <div class="card table-map-card @(table.IsOccupied ? "table-card-occupied" : tableReservations.Any() ? "table-card-reserved" : "table-card-free") h-100">
                         <div class="card-body p-3 d-flex flex-column justify-content-between">
@@ -149,7 +144,7 @@ else
                                     <button class="btn btn-outline-hue btn-sm w-100 py-1"
                                             @onclick="() => DownloadInvoice(table.TableId, table.TableNumber)"
                                             disabled="@isLoading">
-                                        📄 Xuất Phiếu Thanh Toán
+                                        📊 Tải hóa đơn Excel
                                     </button>
                                     <button class="btn btn-danger btn-sm w-100 py-2 shadow-sm"
                                             @onclick="() => CloseBill(table.TableId)"
@@ -219,7 +214,7 @@ else
             <strong>Hướng dẫn quy trình nghiệp vụ:</strong><br />
             1. Khi khách vào nhà hàng hoặc nhận bàn đã đặt: Nhấn <strong>✨ Mở Bàn (Đón khách)</strong> để kích hoạt bàn.<br />
             2. Khách hàng hoặc phục vụ viên vào trang <strong>Menu Món Huế</strong> chọn bàn đó để đặt món.<br />
-            3. Thu ngân có thể nhấn <strong>📄 Xuất Phiếu Thanh Toán</strong> để tải hóa đơn định dạng Text/CSV chi tiết (Tính năng nâng cao K4.3).<br />
+            3. Thu ngân có thể nhấn <strong>📊 Tải hóa đơn Excel</strong> để xuất chi tiết giao dịch từ dữ liệu thật (Tính năng nâng cao K4.3).<br />
             4. Sau khi dùng bữa xong: Nhấn <strong>🧾 Đóng Bill & Thanh Toán</strong> để hoàn tất và trả bàn về trạng thái trống.
         </div>
     </div>
@@ -231,6 +226,14 @@ else
     private string errorMessage = "";
     private string successMessage = "";
     private bool isLoading = false;
+
+    private List<Reservation> GetUpcomingReservations(int tableId)
+    {
+        var now = DateTime.Now;
+        return todayReservations?.Where(r => r.TableId == tableId && r.ReservationTime >= now && r.ReservationTime <= now.AddHours(2)).ToList() ?? new();
+    }
+
+    private bool IsReadyForWalkIn(DiningTable table) => !table.IsOccupied && GetUpcomingReservations(table.TableId).Count == 0;
 
     protected override async Task OnInitializedAsync() => await LoadTables();
 
@@ -281,13 +284,13 @@ else
         errorMessage = "";
         try
         {
-            string invoiceContent = await ExportBillUseCase.ExecuteAsync(tableId);
-            var bytes = System.Text.Encoding.UTF8.GetBytes(invoiceContent);
+            var bytes = await ExportBillUseCase.ExecuteAsync(tableId);
             var base64 = Convert.ToBase64String(bytes);
-            var fileName = $"HoaDon_Ban_{tableNumber}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+            var fileName = $"HoaDon_Ban_{tableNumber}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
 
-            await JSRuntime.InvokeVoidAsync("downloadFileFromBase64", fileName, base64);
-            successMessage = $"Đã xuất hóa đơn cho Bàn {tableNumber} thành công!";
+            await JSRuntime.InvokeVoidAsync("downloadFileFromBase64", fileName, base64,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            successMessage = $"Đã tải hóa đơn Excel cho Bàn {tableNumber} thành công!";
         }
         catch (Exception ex)
         {

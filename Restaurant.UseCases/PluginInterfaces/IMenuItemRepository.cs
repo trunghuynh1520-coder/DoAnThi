@@ -13,4 +13,8 @@ public interface IMenuItemRepository
 {
     Task<IEnumerable<MenuItem>> GetMenuItemsAsync(string filter = "");
     Task<MenuItem?> GetMenuItemByIdAsync(int itemId);
+    Task<IEnumerable<MenuCategory>> GetCategoriesAsync();
+    Task AddMenuItemAsync(MenuItem item);
+    Task UpdateMenuItemAsync(MenuItem item);
+    Task DeleteMenuItemAsync(int itemId);
 }

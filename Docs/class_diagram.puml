@@ -7,6 +7,7 @@ package "CoreBusiness (Entities & Rules)" {
         +string TableNumber
         +int Capacity
         +bool IsOccupied
+        +DateTime? OccupiedSince
     }
 
     class MenuItem {
@@ -16,6 +17,8 @@ package "CoreBusiness (Entities & Rules)" {
         +string Description
         +double Price
         +string ImageUrl
+        +bool IsAvailable
+        +string CategoryName
         +MenuCategory Category
     }
 
@@ -44,7 +47,7 @@ package "CoreBusiness (Entities & Rules)" {
         +double TotalAmount
         +List<TableOrderLine> OrderLines
         +void AddLineItem(int itemId, double price, int qty, DiningTable table)
-        +void CloseOrder()
+        +void CloseOrder(double serviceFeeRate)
     }
 
     class TableOrderLine {
@@ -67,6 +70,10 @@ package "UseCases (Application Logic & Interfaces)" {
     interface IMenuItemRepository {
         +GetMenuItemsAsync()
         +GetMenuItemByIdAsync(id)
+        +GetCategoriesAsync()
+        +AddMenuItemAsync(item)
+        +UpdateMenuItemAsync(item)
+        +DeleteMenuItemAsync(id)
     }
     interface IDiningTableRepository {
         +GetTablesAsync()
@@ -81,7 +88,7 @@ package "UseCases (Application Logic & Interfaces)" {
     }
     interface IReservationRepository {
         +AddReservationAsync(reservation)
-        +GetReservationsForTableAsync(tableId)
+        +GetReservationsForTableAsync(tableId, reservationTime)
     }
 
     class PlaceTableOrderUseCase {
@@ -94,17 +101,26 @@ package "UseCases (Application Logic & Interfaces)" {
         +ExecuteAsync(tableId)
     }
     class ExportBillUseCase {
-        +ExecuteAsync(tableId): Task<string>
+        +ExecuteAsync(tableId): Task<byte[]>
+    }
+    class ManageMenuItemsUseCase {
+        +GetItemsAsync(filter)
+        +GetCategoriesAsync()
+        +AddAsync(item)
+        +UpdateAsync(item)
+        +DeleteAsync(id)
     }
 
     PlaceTableOrderUseCase ..> ITableOrderRepository
     PlaceTableOrderUseCase ..> IDiningTableRepository
+    PlaceTableOrderUseCase ..> IMenuItemRepository
     CreateReservationUseCase ..> IReservationRepository
     CreateReservationUseCase ..> IDiningTableRepository
     CloseTableOrderUseCase ..> ITableOrderRepository
     CloseTableOrderUseCase ..> IDiningTableRepository
     ExportBillUseCase ..> ITableOrderRepository
     ExportBillUseCase ..> IMenuItemRepository
+    ManageMenuItemsUseCase ..> IMenuItemRepository
 }
 
 package "Plugins.DataStore.SQL (Infrastructure)" {

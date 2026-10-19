@@ -15,11 +15,13 @@ public class PlaceTableOrderUseCase
 {
     private readonly ITableOrderRepository _orderRepository;
     private readonly IDiningTableRepository _tableRepository;
+    private readonly IMenuItemRepository _menuItemRepository;
 
-    public PlaceTableOrderUseCase(ITableOrderRepository orderRepository, IDiningTableRepository tableRepository)
+    public PlaceTableOrderUseCase(ITableOrderRepository orderRepository, IDiningTableRepository tableRepository, IMenuItemRepository menuItemRepository)
     {
         _orderRepository = orderRepository;
         _tableRepository = tableRepository;
+        _menuItemRepository = menuItemRepository;
     }
 
     /// <summary>
@@ -39,9 +41,12 @@ public class PlaceTableOrderUseCase
         }
 
         // Gọi Business Rule AddLineItem cho từng món (trong 1 lần duy nhất)
-        foreach (var (itemId, price, quantity) in items)
+        foreach (var (itemId, _, quantity) in items)
         {
-            activeOrder.AddLineItem(itemId, price, quantity, table);
+            var menuItem = await _menuItemRepository.GetMenuItemByIdAsync(itemId);
+            if (menuItem == null || !menuItem.IsAvailable)
+                throw new InvalidOperationException("Món này hiện không có sẵn, vui lòng chọn món khác.");
+            activeOrder.AddLineItem(itemId, menuItem.Price, quantity, table);
         }
 
         if (activeOrder.OrderId == 0)

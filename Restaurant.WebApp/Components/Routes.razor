@@ -1,6 +1,23 @@
 ﻿<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized Context="authState">
+                <LayoutView Layout="typeof(Layout.MainLayout)">
+                    <div class="container py-5">
+                        <h1>Không có quyền truy cập</h1>
+                        @if (authState.User.Identity?.IsAuthenticated == true)
+                        {
+                            <p>Tài khoản hiện tại không có quyền quản trị trang này.</p>
+                        }
+                        else
+                        {
+                            <p>Vui lòng đăng nhập bằng tài khoản phù hợp để tiếp tục.</p>
+                        }
+                        <a class="btn btn-outline-hue" href="/login">Đến trang đăng nhập</a>
+                    </div>
+                </LayoutView>
+            </NotAuthorized>
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>

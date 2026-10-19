@@ -15,6 +15,7 @@ CREATE TABLE MenuItem (
     Description NVARCHAR(500),
     Price FLOAT NOT NULL,
     ImageUrl NVARCHAR(500),
+    IsAvailable BIT NOT NULL DEFAULT 1,
     FOREIGN KEY (CategoryId) REFERENCES MenuCategory(CategoryId)
 );
 

@@ -22,13 +22,17 @@
     <Routes />
     <script src="_framework/blazor.web.js"></script>
     <script>
-        window.downloadFileFromBase64 = (fileName, base64Data) => {
+        window.downloadFileFromBase64 = (fileName, base64Data, contentType) => {
+            const binary = atob(base64Data);
+            const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
+            const blob = new Blob([bytes], { type: contentType || 'application/octet-stream' });
             const link = document.createElement('a');
             link.download = fileName;
-            link.href = 'data:text/plain;charset=utf-8;base64,' + base64Data;
+            link.href = URL.createObjectURL(blob);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
         };
     </script>
 </body>

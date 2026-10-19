@@ -24,7 +24,11 @@ public class MenuItemRepository : IMenuItemRepository
     public async Task<IEnumerable<MenuItem>> GetMenuItemsAsync(string filter = "")
     {
         using var connection = new SqlConnection(_connectionString);
-        string sql = "SELECT * FROM MenuItem WHERE Name LIKE '%' + @filter + '%'";
+        string sql = @"SELECT m.*, c.Name AS CategoryName
+                       FROM MenuItem m
+                       INNER JOIN MenuCategory c ON c.CategoryId = m.CategoryId
+                       WHERE m.Name LIKE '%' + @filter + '%'
+                       ORDER BY c.Name, m.Name";
         return await connection.QueryAsync<MenuItem>(sql, new { filter });
     }
 
@@ -33,5 +37,35 @@ public class MenuItemRepository : IMenuItemRepository
         using var connection = new SqlConnection(_connectionString);
         string sql = "SELECT * FROM MenuItem WHERE ItemId = @itemId";
         return await connection.QueryFirstOrDefaultAsync<MenuItem>(sql, new { itemId });
+    }
+
+    public async Task<IEnumerable<MenuCategory>> GetCategoriesAsync()
+    {
+        using var connection = new SqlConnection(_connectionString);
+        return await connection.QueryAsync<MenuCategory>("SELECT * FROM MenuCategory ORDER BY Name");
+    }
+
+    public async Task AddMenuItemAsync(MenuItem item)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        const string sql = @"INSERT INTO MenuItem (CategoryId, Name, Description, Price, ImageUrl, IsAvailable)
+                             VALUES (@CategoryId, @Name, @Description, @Price, @ImageUrl, @IsAvailable)";
+        await connection.ExecuteAsync(sql, item);
+    }
+
+    public async Task UpdateMenuItemAsync(MenuItem item)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        const string sql = @"UPDATE MenuItem
+                             SET CategoryId = @CategoryId, Name = @Name, Description = @Description,
+                                 Price = @Price, ImageUrl = @ImageUrl, IsAvailable = @IsAvailable
+                             WHERE ItemId = @ItemId";
+        await connection.ExecuteAsync(sql, item);
+    }
+
+    public async Task DeleteMenuItemAsync(int itemId)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        await connection.ExecuteAsync("DELETE FROM MenuItem WHERE ItemId = @itemId", new { itemId });
     }
 }

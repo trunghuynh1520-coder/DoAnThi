@@ -1,3 +1,5 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
 <div class="order-panel shadow-sm">
     <div class="order-panel-header d-flex justify-content-between align-items-center mb-3">
         <h3 class="mb-0">🛒 Phiếu Gọi Món</h3>
@@ -51,7 +53,7 @@
                 <span class="fw-semibold">@SubTotal.ToString("N0")₫</span>
             </div>
             <div class="calc-row d-flex justify-content-between mb-2">
-                <span class="text-muted">Phí phục vụ (10%):</span>
+                <span class="text-muted">Phí phục vụ (@ServiceFeeRate.ToString("P0")):</span>
                 <span class="fw-semibold">@ServiceFee.ToString("N0")₫</span>
             </div>
             <div class="order-total-row d-flex justify-content-between align-items-center border-top pt-2">
@@ -111,7 +113,8 @@
     public EventCallback<(TableOrderLine Line, int Delta)> OnQuantityChanged { get; set; }
 
     private double SubTotal => Items.Sum(x => x.Price * x.Quantity);
-    private double ServiceFee => SubTotal * 0.1;
+    private double ServiceFeeRate => Configuration.GetValue<double>("Restaurant:ServiceFeeRate", 0.10);
+    private double ServiceFee => SubTotal * ServiceFeeRate;
     private double TotalAmount => SubTotal + ServiceFee;
 
     private async Task ChangeQuantity(TableOrderLine line, int delta)

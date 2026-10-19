@@ -24,7 +24,7 @@ public class TableOrder
     /// <summary>
     /// Luật Gọi món & Đóng hóa đơn
     /// 1. Chỉ gọi món khi bàn đang Mở (IsOccupied = true)
-    /// 2. Hóa đơn = SUM(Quantity * UnitPrice) + Phí phục vụ (giả sử phí phục vụ là 10%)
+    /// 2. Hóa đơn = SUM(Quantity * UnitPrice) + phí phục vụ lấy từ cấu hình ứng dụng.
     /// 3. Cấm sửa khi bàn đã Đóng (IsClosed = true)
     /// </summary>
     public void AddLineItem(int itemId, double price, int quantity, DiningTable table)
@@ -34,6 +34,8 @@ public class TableOrder
             
         if (!table.IsOccupied)
             throw new InvalidOperationException("Chỉ được gọi món khi bàn đang được sử dụng (IsOccupied = true).");
+        if (quantity <= 0)
+            throw new ArgumentOutOfRangeException(nameof(quantity), "Số lượng món phải lớn hơn 0.");
 
         var existingLine = OrderLines.FirstOrDefault(x => x.ItemId == itemId);
         if (existingLine != null)
@@ -52,13 +54,15 @@ public class TableOrder
         }
     }
 
-    public void CloseOrder()
+    public void CloseOrder(double serviceFeeRate)
     {
         if (IsClosed)
             throw new InvalidOperationException("Hóa đơn đã được đóng từ trước.");
+        if (serviceFeeRate < 0)
+            throw new ArgumentOutOfRangeException(nameof(serviceFeeRate), "Phí phục vụ không thể âm.");
 
         double subTotal = OrderLines.Sum(x => x.Price * x.Quantity);
-        double serviceFee = subTotal * 0.1; // Phí phục vụ 10%
+        double serviceFee = subTotal * serviceFeeRate;
         TotalAmount = subTotal + serviceFee;
         IsClosed = true;
     }

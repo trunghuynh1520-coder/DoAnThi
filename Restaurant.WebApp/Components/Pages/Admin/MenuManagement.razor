@@ -1,0 +1,135 @@
+@page "/admin/menu"
+@attribute [Authorize(Roles = "Admin")]
+@inject ManageMenuItemsUseCase MenuUseCase
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Quản lý thực đơn | Nhà Hàng Món Huế</PageTitle>
+
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <div class="section-label">QUẢN LÝ NHÀ HÀNG</div>
+        <h1 class="mb-1">📝 Quản lý thực đơn</h1>
+        <p class="page-subtitle mb-0">Thêm, sửa, ẩn món hết hàng và quản lý danh sách món đang phục vụ.</p>
+    </div>
+    <a class="btn btn-outline-hue" href="/admin/tables">← Sơ đồ bàn</a>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(message))
+{
+    <div class="alert @(isError ? "alert-danger" : "alert-success")">@message</div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow-sm"><div class="card-body p-4">
+            <h2 class="h5 mb-3">@(editingItemId == 0 ? "Thêm món mới" : "Cập nhật món")</h2>
+            <EditForm Model="form" OnValidSubmit="SaveItem">
+                <DataAnnotationsValidator />
+                <div class="mb-3"><label class="form-label">Tên món</label><InputText class="form-control" @bind-Value="form.Name" /><ValidationMessage For="() => form.Name" /></div>
+                <div class="mb-3"><label class="form-label">Danh mục</label><InputSelect class="form-select" @bind-Value="form.CategoryId"><option value="0">Chọn danh mục</option>@foreach (var category in categories){<option value="@category.CategoryId">@category.Name</option>}</InputSelect><ValidationMessage For="() => form.CategoryId" /></div>
+                <div class="mb-3"><label class="form-label">Mô tả</label><InputTextArea class="form-control" rows="3" @bind-Value="form.Description" /></div>
+                <div class="mb-3"><label class="form-label">Giá (₫)</label><InputNumber class="form-control" @bind-Value="form.Price" /><ValidationMessage For="() => form.Price" /></div>
+                <div class="mb-3"><label class="form-label">Đường dẫn ảnh (nếu có)</label><InputText class="form-control" @bind-Value="form.ImageUrl" /></div>
+                <div class="form-check mb-3"><InputCheckbox class="form-check-input" @bind-Value="form.IsAvailable" /><label class="form-check-label">Đang phục vụ</label></div>
+                <div class="d-flex gap-2"><button class="btn btn-success" type="submit" disabled="@isBusy">Lưu món</button>@if(editingItemId != 0){<button class="btn btn-outline-secondary" type="button" @onclick="ResetForm">Hủy sửa</button>}</div>
+            </EditForm>
+        </div></div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card shadow-sm"><div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Danh sách món</h2><span class="badge bg-light text-dark">@items.Count món</span></div>
+            @if (items.Count == 0)
+            {
+                <p class="text-muted">Chưa có món nào trong thực đơn.</p>
+            }
+            else
+            {
+                <div class="table-responsive"><table class="table table-hover align-middle">
+                    <thead><tr><th>Món</th><th>Danh mục</th><th class="text-end">Giá</th><th>Trạng thái</th><th></th></tr></thead>
+                    <tbody>@foreach (var item in items)
+                    {
+                        <tr>
+                            <td><strong>@item.Name</strong><div class="small text-muted">@item.Description</div></td>
+                            <td>@item.CategoryName</td><td class="text-end">@item.Price.ToString("N0")₫</td>
+                            <td><span class="badge @(item.IsAvailable ? "bg-success" : "bg-secondary")">@(item.IsAvailable ? "Đang bán" : "Tạm hết")</span></td>
+                            <td class="text-end text-nowrap"><button class="btn btn-sm btn-outline-primary" @onclick="() => EditItem(item)">Sửa</button> <button class="btn btn-sm btn-outline-secondary" @onclick="() => ToggleAvailability(item)">@(item.IsAvailable ? "Tắt món" : "Bật món")</button> <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteItem(item)">Xóa</button></td>
+                        </tr>
+                    }}</tbody>
+                </table></div>
+            }
+        </div></div>
+    </div>
+</div>
+
+@code {
+    private List<MenuItem> items = new();
+    private List<MenuCategory> categories = new();
+    private MenuForm form = new();
+    private int editingItemId;
+    private bool isBusy;
+    private bool isError;
+    private string message = string.Empty;
+
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    private async Task LoadData()
+    {
+        items = (await MenuUseCase.GetItemsAsync()).ToList();
+        categories = (await MenuUseCase.GetCategoriesAsync()).ToList();
+    }
+
+    private async Task SaveItem()
+    {
+        isBusy = true;
+        message = string.Empty;
+        try
+        {
+            var item = new MenuItem { ItemId = editingItemId, CategoryId = form.CategoryId, Name = form.Name.Trim(), Description = form.Description.Trim(), Price = form.Price, ImageUrl = form.ImageUrl.Trim(), IsAvailable = form.IsAvailable };
+            if (editingItemId == 0) await MenuUseCase.AddAsync(item); else await MenuUseCase.UpdateAsync(item);
+            message = editingItemId == 0 ? "Đã thêm món vào thực đơn." : "Đã cập nhật món.";
+            isError = false;
+            ResetForm();
+            await LoadData();
+        }
+        catch (Exception ex) { message = "Không thể lưu món: " + ex.Message; isError = true; }
+        finally { isBusy = false; }
+    }
+
+    private void EditItem(MenuItem item)
+    {
+        editingItemId = item.ItemId;
+        form = new MenuForm { CategoryId = item.CategoryId, Name = item.Name, Description = item.Description, Price = item.Price, ImageUrl = item.ImageUrl, IsAvailable = item.IsAvailable };
+        message = string.Empty;
+    }
+
+    private async Task ToggleAvailability(MenuItem item)
+    {
+        item.IsAvailable = !item.IsAvailable;
+        try { await MenuUseCase.UpdateAsync(item); message = item.IsAvailable ? $"Đã bật món {item.Name}." : $"Đã tạm ẩn món {item.Name}."; isError = false; await LoadData(); }
+        catch (Exception ex) { message = "Không thể đổi trạng thái món: " + ex.Message; isError = true; }
+    }
+
+    private async Task DeleteItem(MenuItem item)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Xóa món {item.Name}? Nếu món đã có trong hóa đơn, hãy tắt món thay vì xóa.");
+        if (!confirmed) return;
+        try { await MenuUseCase.DeleteAsync(item.ItemId); message = $"Đã xóa món {item.Name}."; isError = false; await LoadData(); }
+        catch { message = "Món đã được dùng trong hóa đơn nên không thể xóa. Hãy dùng nút Tắt món để giữ lịch sử giao dịch."; isError = true; }
+    }
+
+    private void ResetForm() { editingItemId = 0; form = new MenuForm(); }
+
+    private sealed class MenuForm
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Vui lòng nhập tên món.")]
+        public string Name { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn danh mục.")]
+        public int CategoryId { get; set; }
+        public string Description { get; set; } = string.Empty;
+        [System.ComponentModel.DataAnnotations.Range(0.01, double.MaxValue, ErrorMessage = "Giá món phải lớn hơn 0.")]
+        public double Price { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
+        public bool IsAvailable { get; set; } = true;
+    }
+}

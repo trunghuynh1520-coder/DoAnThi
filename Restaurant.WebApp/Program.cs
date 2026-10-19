@@ -26,19 +26,24 @@ builder.Services.AddCascadingAuthenticationState();
 // 2. Connection String
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? "Data Source=LAPTOP-7JU85UG3\\SQLEXPRESS;Initial Catalog=RestaurantDB;Integrated Security=True;TrustServerCertificate=True";
+var serviceFeeRate = builder.Configuration.GetValue<double>("Restaurant:ServiceFeeRate", 0.10);
 
 // 3. DI Repositories (Dapper)
 builder.Services.AddTransient<IMenuItemRepository>(sp => new MenuItemRepository(connectionString));
 builder.Services.AddTransient<IDiningTableRepository>(sp => new DiningTableRepository(connectionString));
 builder.Services.AddTransient<IReservationRepository>(sp => new ReservationRepository(connectionString));
 builder.Services.AddTransient<ITableOrderRepository>(sp => new TableOrderRepository(connectionString));
+builder.Services.AddTransient<ManageMenuItemsUseCase>();
 
 // 4. DI Use Cases
 builder.Services.AddTransient<ViewMenuItemsUseCase>();
 builder.Services.AddTransient<CreateReservationUseCase>();
 builder.Services.AddTransient<PlaceTableOrderUseCase>();
-builder.Services.AddTransient<CloseTableOrderUseCase>();
-builder.Services.AddTransient<ExportBillUseCase>();
+builder.Services.AddTransient<CloseTableOrderUseCase>(sp => new CloseTableOrderUseCase(
+    sp.GetRequiredService<ITableOrderRepository>(), sp.GetRequiredService<IDiningTableRepository>(), serviceFeeRate));
+builder.Services.AddTransient<ExportBillUseCase>(sp => new ExportBillUseCase(
+    sp.GetRequiredService<ITableOrderRepository>(), sp.GetRequiredService<IDiningTableRepository>(),
+    sp.GetRequiredService<IMenuItemRepository>(), serviceFeeRate));
 
 // 5. Scoped State (ShoppingCart equivalent)
 builder.Services.AddScoped<ScopedOrderState>();
@@ -46,7 +51,7 @@ builder.Services.AddScoped<ScopedOrderState>();
 var app = builder.Build();
 
 // Add the table service timer column to existing databases without requiring a rebuild.
-await new DiningTableRepository(connectionString).EnsureTableTimingSchemaAsync();
+await new DiningTableRepository(connectionString).EnsureApplicationSchemaAsync();
 
 if (!app.Environment.IsDevelopment())
 {
@@ -69,17 +74,24 @@ app.MapPost("/login", async (HttpContext context,
     [Microsoft.AspNetCore.Mvc.FromForm] string username,
     [Microsoft.AspNetCore.Mvc.FromForm] string password) =>
 {
-    if (username == "admin" && password == "admin")
+    var role = (username, password) switch
+    {
+        ("admin", "admin") => "Admin",
+        ("user", "user") => "User",
+        _ => null
+    };
+
+    if (role != null)
     {
         var claims = new System.Collections.Generic.List<System.Security.Claims.Claim>
         {
             new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, username),
-            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, "Admin")
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, role)
         };
         var identity = new System.Security.Claims.ClaimsIdentity(claims, "Restaurant.CookieAuth");
         var principal = new System.Security.Claims.ClaimsPrincipal(identity);
         await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.SignInAsync(context, "Restaurant.CookieAuth", principal);
-        return Microsoft.AspNetCore.Http.Results.Redirect("/admin/tables");
+        return Microsoft.AspNetCore.Http.Results.Redirect(role == "Admin" ? "/admin/tables" : "/");
     }
     return Microsoft.AspNetCore.Http.Results.Redirect("/login?error=InvalidCredentials");
 });
