@@ -37,6 +37,7 @@
 ========================================================= */
 *, *::before, *::after {
     box-sizing: border-box;
+    letter-spacing: normal !important;
 }
 
 html, body {
@@ -94,7 +95,7 @@ html, body {
     font-size: 1.35rem;
     font-weight: 700;
     color: var(--hue-gold);
-    letter-spacing: 0.04em;
+    letter-spacing: normal;
     line-height: 1.2;
 }
 
@@ -102,7 +103,7 @@ html, body {
     display: block;
     font-size: 0.72rem;
     color: #bda38f;
-    letter-spacing: 0.12em;
+    letter-spacing: normal;
     text-transform: uppercase;
     margin-top: 2px;
 }
@@ -124,7 +125,7 @@ html, body {
     font-size: 0.72rem;
     color: #8c7362;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: normal;
     font-weight: 600;
     padding: 0.6rem 0.8rem 0.3rem;
 }
@@ -166,7 +167,13 @@ html, body {
 }
 
 .nav-icon {
-    font-size: 1.15rem;
+    width: 1.6rem;
+    min-width: 1.6rem;
+    height: 1.6rem;
+    display: inline-grid;
+    place-items: center;
+    font-size: 1.22rem;
+    filter: saturate(1.18);
 }
 
 .sidebar-footer-card {
@@ -182,7 +189,7 @@ html, body {
     font-size: 0.76rem;
     color: #c9ad99;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: normal;
     margin-bottom: 0.2rem;
 }
 
@@ -231,7 +238,7 @@ html, body {
     border: 1px solid rgba(139, 30, 30, 0.2);
     padding: 0.35rem 0.9rem;
     border-radius: 20px;
-    letter-spacing: 0.02em;
+    letter-spacing: normal;
 }
 
 .top-row-right {
@@ -277,20 +284,23 @@ html, body {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: linear-gradient(135deg, var(--hue-red) 0%, #a62626 100%);
-    color: #FFF !important;
+    background: #fffaf2;
+    color: var(--hue-red) !important;
     text-decoration: none !important;
     font-size: 0.88rem;
     font-weight: 600;
     padding: 0.45rem 1.1rem;
-    border-radius: var(--radius-sm);
-    box-shadow: 0 2px 6px rgba(139, 30, 30, 0.25);
+    border: 1px solid rgba(139, 30, 30, 0.2);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(72, 37, 16, 0.08);
     transition: all 0.2s;
 }
 
 .btn-top-login:hover {
+    background: #f5eadb;
+    border-color: rgba(139, 30, 30, 0.38);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(139, 30, 30, 0.35);
+    box-shadow: 0 5px 14px rgba(72, 37, 16, 0.12);
 }
 
 /* =========================================================
@@ -337,7 +347,7 @@ h1 {
     font-size: 2.3rem;
     font-weight: 700;
     color: var(--hue-red);
-    letter-spacing: -0.01em;
+    letter-spacing: normal;
 }
 
 .page-subtitle {
@@ -349,7 +359,7 @@ h1 {
     font-size: 0.76rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: normal;
     color: var(--hue-gold);
     margin-bottom: 0.3rem;
 }
@@ -358,15 +368,19 @@ h1 {
    6. HERO SECTION TRANG CHỦ
 ========================================================= */
 .hero-section {
-    background: linear-gradient(135deg, var(--hue-red) 0%, #681111 60%, var(--hue-dark) 100%);
+    background:
+        radial-gradient(ellipse at 82% 14%, rgba(230, 177, 83, 0.27), transparent 30%),
+        radial-gradient(ellipse at 93% 91%, rgba(193, 103, 54, 0.24), transparent 38%),
+        linear-gradient(118deg, #762018 0%, #8b3023 48%, #472017 100%);
     color: #FFF;
-    padding: 4rem 3.5rem;
+    padding: 4.25rem 3.5rem;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     position: relative;
     overflow: hidden;
     margin-bottom: 3rem;
-    border: 1px solid rgba(200, 149, 42, 0.3);
+    border: 1px solid rgba(240, 204, 139, 0.45);
+    isolation: isolate;
 }
 
 .hero-section::before {
@@ -474,7 +488,7 @@ h1 {
     font-size: 0.72rem;
     color: #FFF;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: normal;
     margin-top: 4px;
 }
 
@@ -504,9 +518,32 @@ h1 {
 }
 
 .feature-icon-wrapper {
-    font-size: 3rem;
-    margin-bottom: 1.2rem;
+    width: 3.7rem;
+    height: 3.7rem;
+    display: grid;
+    place-items: center;
+    margin-bottom: 1.15rem;
+    border-radius: 1.15rem;
+    color: var(--hue-red);
+    background: linear-gradient(145deg, #fff8e9, #f3e2bf);
+    border: 1px solid rgba(200, 149, 42, 0.28);
+    box-shadow: 0 7px 18px rgba(72, 37, 16, 0.1), inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+.feature-icon-wrapper span {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.25rem;
     line-height: 1;
+}
+
+.feature-icon-reservation {
+    color: #9a6520;
+    background: linear-gradient(145deg, #fff9ee, #f3e4ca);
+}
+
+.feature-icon-tables {
+    color: #42614f;
+    background: linear-gradient(145deg, #f2f7ed, #dce9d6);
 }
 
 .feature-title {
@@ -728,7 +765,7 @@ h1 {
     font-weight: 700;
     padding: 3px 10px;
     border-radius: 12px;
-    letter-spacing: 0.04em;
+    letter-spacing: normal;
     text-transform: uppercase;
 }
 
@@ -831,6 +868,62 @@ h1 {
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
     transition: all 0.2s;
+}
+
+.payment-qr-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(22, 13, 8, 0.62);
+    backdrop-filter: blur(4px);
+}
+
+.payment-qr-dialog {
+    position: relative;
+    width: min(100%, 420px);
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: #fffdf9;
+    box-shadow: 0 24px 70px rgba(20, 12, 8, 0.3);
+    text-align: center;
+}
+
+.payment-qr-close {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.9rem;
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.7rem;
+    line-height: 1;
+}
+
+.payment-qr-image {
+    display: block;
+    width: min(100%, 260px);
+    aspect-ratio: 1;
+    object-fit: contain;
+    margin: 0 auto 0.5rem;
+    border: 1px solid #eee5d8;
+    border-radius: 1rem;
+    background: #fff;
+}
+
+.payment-qr-amount {
+    color: var(--hue-red);
+    font-size: 1.7rem;
+    font-weight: 800;
+}
+
+.payment-qr-reference {
+    margin-top: 0.2rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
 }
 
 .table-card-occupied {

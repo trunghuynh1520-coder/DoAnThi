@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -29,14 +31,26 @@ public class MenuItemRepository : IMenuItemRepository
                        INNER JOIN MenuCategory c ON c.CategoryId = m.CategoryId
                        WHERE m.Name LIKE '%' + @filter + '%'
                        ORDER BY c.Name, m.Name";
-        return await connection.QueryAsync<MenuItem>(sql, new { filter });
+        var items = (await connection.QueryAsync<MenuItem>(sql, new { filter })).ToList();
+        foreach (var item in items)
+        {
+            NormalizeDisplayText(item);
+        }
+
+        return items;
     }
 
     public async Task<MenuItem?> GetMenuItemByIdAsync(int itemId)
     {
         using var connection = new SqlConnection(_connectionString);
         string sql = "SELECT * FROM MenuItem WHERE ItemId = @itemId";
-        return await connection.QueryFirstOrDefaultAsync<MenuItem>(sql, new { itemId });
+        var item = await connection.QueryFirstOrDefaultAsync<MenuItem>(sql, new { itemId });
+        if (item is not null)
+        {
+            NormalizeDisplayText(item);
+        }
+
+        return item;
     }
 
     public async Task<IEnumerable<MenuCategory>> GetCategoriesAsync()
@@ -67,5 +81,20 @@ public class MenuItemRepository : IMenuItemRepository
     {
         using var connection = new SqlConnection(_connectionString);
         await connection.ExecuteAsync("DELETE FROM MenuItem WHERE ItemId = @itemId", new { itemId });
+    }
+
+    private static void NormalizeDisplayText(MenuItem item)
+    {
+        item.Name = NormalizeVietnameseText(item.Name);
+        item.Description = NormalizeVietnameseText(item.Description);
+        item.CategoryName = NormalizeVietnameseText(item.CategoryName);
+    }
+
+    private static string NormalizeVietnameseText(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return value ?? string.Empty;
+
+        var withoutAccentGaps = Regex.Replace(value, @"(?<=\p{L})\s+(?=\p{M})", string.Empty);
+        return withoutAccentGaps.Normalize(NormalizationForm.FormC);
     }
 }

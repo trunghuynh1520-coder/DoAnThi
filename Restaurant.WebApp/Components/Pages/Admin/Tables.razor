@@ -34,6 +34,28 @@
     <div class="alert alert-success shadow-sm">✅ @successMessage</div>
 }
 
+@if (showPaymentDialog)
+{
+    <div class="payment-qr-backdrop" role="presentation">
+        <section class="payment-qr-dialog" role="dialog" aria-modal="true" aria-labelledby="payment-qr-title">
+            <button type="button" class="payment-qr-close" aria-label="Đóng" @onclick="CancelPayment">×</button>
+            <div class="section-label mb-1">THANH TOÁN CHUYỂN KHOẢN</div>
+            <h2 id="payment-qr-title" class="h4 mb-2">Quét mã VietQR</h2>
+            <p class="text-muted mb-3">Bàn @paymentTableNumber · MB Bank · 0935880626</p>
+            <img class="payment-qr-image" src="@paymentQrUrl" alt="Mã QR thanh toán MB Bank" />
+            <div class="payment-qr-amount">@paymentAmount.ToString("N0")₫</div>
+            <div class="payment-qr-reference">Nội dung: <strong>@paymentReference</strong></div>
+            <p class="small text-muted mt-3 mb-3">Sau khi kiểm tra tiền đã vào tài khoản, xác nhận để đóng hóa đơn và trả bàn.</p>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary flex-grow-1" @onclick="CancelPayment" disabled="@isLoading">Để sau</button>
+                <button type="button" class="btn btn-success flex-grow-1" @onclick="ConfirmPayment" disabled="@isLoading">
+                    @(isLoading ? "Đang xử lý..." : "Đã nhận tiền · Đóng bill")
+                </button>
+            </div>
+        </section>
+    </div>
+}
+
 @if (tables == null)
 {
     <div class="loading-box">
@@ -238,6 +260,12 @@ else
     private string errorMessage = "";
     private string successMessage = "";
     private bool isLoading = false;
+    private bool showPaymentDialog;
+    private int paymentTableId;
+    private string paymentTableNumber = string.Empty;
+    private string paymentReference = string.Empty;
+    private string paymentQrUrl = string.Empty;
+    private double paymentAmount;
     private string reservationSearch = string.Empty;
     private string reservationFilter = "all";
 
@@ -381,13 +409,39 @@ else
             var serviceFeeRate = Configuration.GetValue<double>("Restaurant:ServiceFeeRate", 0.10);
             var subtotal = order.OrderLines.Sum(line => line.Price * line.Quantity);
             var serviceFee = subtotal * serviceFeeRate;
-            var total = subtotal + serviceFee;
-            var tableNumber = tables?.FirstOrDefault(t => t.TableId == tableId)?.TableNumber;
-            var confirmMessage = $"Xác nhận thanh toán Bàn {tableNumber}?\n\nTạm tính: {subtotal:N0}₫\nPhí phục vụ ({serviceFeeRate:P0}): {serviceFee:N0}₫\nTổng thanh toán: {total:N0}₫\n\nSau khi xác nhận, hóa đơn sẽ đóng và bàn được trả về trạng thái trống.";
-            if (!await JSRuntime.InvokeAsync<bool>("confirm", confirmMessage)) return;
+            paymentAmount = Math.Round(subtotal + serviceFee, MidpointRounding.AwayFromZero);
+            paymentTableId = tableId;
+            paymentTableNumber = tables?.FirstOrDefault(t => t.TableId == tableId)?.TableNumber ?? tableId.ToString();
+            paymentReference = $"THANHTOAN BAN {paymentTableNumber}";
+            var amount = ((long)paymentAmount).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var encodedReference = Uri.EscapeDataString(paymentReference);
+            paymentQrUrl = $"https://img.vietqr.io/image/970422-0935880626-compact2.svg?amount={amount}&addInfo={encodedReference}";
+            showPaymentDialog = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Lỗi khi đóng hóa đơn: " + ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
 
-            await CloseTableOrderUseCase.ExecuteAsync(tableId);
-            successMessage = $"Đã thanh toán và đóng hóa đơn Bàn {tableNumber}. Bàn đã trở về trạng thái trống.";
+    private void CancelPayment() => showPaymentDialog = false;
+
+    private async Task ConfirmPayment()
+    {
+        if (isLoading || !showPaymentDialog) return;
+
+        isLoading = true;
+        errorMessage = "";
+        successMessage = "";
+        try
+        {
+            await CloseTableOrderUseCase.ExecuteAsync(paymentTableId);
+            showPaymentDialog = false;
+            successMessage = $"Đã xác nhận nhận tiền và đóng hóa đơn Bàn {paymentTableNumber}. Bàn đã trở về trạng thái trống.";
             await LoadTables();
         }
         catch (Exception ex)
