@@ -1,4 +1,5 @@
 @page "/admin/menu"
+@layout AdminLayout
 @attribute [Authorize(Roles = "Admin")]
 @inject ManageMenuItemsUseCase MenuUseCase
 @inject IJSRuntime JSRuntime
