@@ -1,24 +1,11 @@
 <div class="card h-100 menu-item-card @(Item.IsAvailable ? "" : "is-unavailable")">
     <div class="menu-item-media">
-        @if (!string.IsNullOrWhiteSpace(Item.ImageUrl))
-        {
-            <img src="@Item.ImageUrl"
-                 alt="@Item.Name"
-                 class="menu-item-img"
-                 loading="lazy"
-                 onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-            <div class="menu-item-fallback" style="display:none;">
-                <span class="fallback-emoji">@GetEmoji(Item.CategoryId)</span>
-                <span class="fallback-seal">CỐ ĐÔ</span>
-            </div>
-        }
-        else
-        {
-            <div class="menu-item-fallback">
-                <span class="fallback-emoji">@GetEmoji(Item.CategoryId)</span>
-                <span class="fallback-seal">CỐ ĐÔ</span>
-            </div>
-        }
+        <img src="@GetImageSource()"
+             alt="Ảnh món @Item.Name"
+             class="menu-item-img"
+             loading="lazy"
+             decoding="async"
+             onerror="this.onerror=null;this.src='/images/menu/bun-bo-hue.jpg';" />
         <span class="category-chip">@Item.CategoryName</span>
         @if (!Item.IsAvailable)
         {
@@ -64,12 +51,25 @@
         }
     }
 
-    private string GetEmoji(int categoryId) => categoryId switch
+    private string GetImageSource()
     {
-        1 => "🍜",
-        2 => "🫔",
-        3 => "🍽️",
-        4 => "🍵",
-        _ => "🥢"
-    };
+        if (!string.IsNullOrWhiteSpace(Item.ImageUrl))
+            return Item.ImageUrl;
+
+        return Item.Name.Trim().ToLowerInvariant() switch
+        {
+            "nước ép chanh dây" => "/images/menu/nuoc-ep-chanh-day.jpg",
+            "trà cung đình huế" => "/images/menu/tra-cung-dinh.jpg",
+            "bánh bèo chén" => "/images/menu/banh-beo.jpg",
+            "bánh lọc trần" => "/images/menu/banh-bot-loc.jpg",
+            "bánh nậm lá chuối" => "/images/menu/banh-nam.jpg",
+            "bò lá lốt" => "/images/menu/bo-la-lot.jpg",
+            "cơm hến" => "/images/menu/com-hen.jpg",
+            "nem lụi nướng" => "/images/menu/nem-lui.jpg",
+            "bún bò huế" => "/images/menu/bun-bo-hue.jpg",
+            "bún giò heo" => "/images/menu/bun-gio-heo.jpg",
+            "phở huế đặc biệt" => "/images/menu/pho-hue.jpg",
+            _ => "/images/menu/bun-bo-hue.jpg"
+        };
+    }
 }
