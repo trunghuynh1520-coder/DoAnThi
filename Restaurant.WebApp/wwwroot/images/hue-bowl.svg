@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 500" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Bún bò Huế</title>
+  <desc id="desc">Minh họa tô bún bò Huế với nước dùng đỏ, thịt, rau thơm và hoa chuối.</desc>
+  <defs>
+    <linearGradient id="bowl" x1="135" y1="252" x2="418" y2="408" gradientUnits="userSpaceOnUse"><stop stop-color="#FFFDF7"/><stop offset=".58" stop-color="#F4E9D7"/><stop offset="1" stop-color="#D9C4A5"/></linearGradient>
+    <linearGradient id="soup" x1="166" y1="236" x2="384" y2="316" gradientUnits="userSpaceOnUse"><stop stop-color="#C95625"/><stop offset=".52" stop-color="#A93420"/><stop offset="1" stop-color="#6E2019"/></linearGradient>
+    <linearGradient id="rim" x1="133" y1="239" x2="416" y2="288" gradientUnits="userSpaceOnUse"><stop stop-color="#E9C985"/><stop offset=".5" stop-color="#FFF2CF"/><stop offset="1" stop-color="#B17B34"/></linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="matrix(0 180 -230 0 275 245)" gradientUnits="userSpaceOnUse"><stop stop-color="#E5B66B" stop-opacity=".46"/><stop offset="1" stop-color="#E5B66B" stop-opacity="0"/></radialGradient>
+    <filter id="shadow" x="76" y="180" width="408" height="294" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="18"/></filter>
+  </defs>
+  <circle cx="286" cy="246" r="212" fill="url(#glow)"/>
+  <circle cx="280" cy="246" r="183" stroke="#E8C98D" stroke-opacity=".3" stroke-width="1.5"/>
+  <circle cx="280" cy="246" r="158" stroke="#E8C98D" stroke-opacity=".2" stroke-dasharray="2 9" stroke-width="2"/>
+  <path d="M112 109c19-31 57-39 80-15 13 14 11 34-2 48-10 11-28 17-42 30-17 16-24 35-42 38-21 4-41-12-41-34 0-24 28-44 47-67Z" fill="#62764B"/>
+  <path d="M111 184c30-27 45-54 65-78M78 180c28-15 50-31 77-57" stroke="#E2D9A8" stroke-linecap="round" stroke-width="4"/>
+  <path d="M400 117c22-21 55-22 70-2 12 16 7 34-7 46-12 10-31 13-45 25-16 13-24 32-42 32-21 0-35-18-30-39 5-24 34-45 54-62Z" fill="#71834C"/>
+  <path d="M378 195c29-24 47-47 71-72m-38 55c24-10 43-23 65-43" stroke="#E2D9A8" stroke-linecap="round" stroke-width="4"/>
+  <ellipse cx="280" cy="418" fill="#341B14" fill-opacity=".22" rx="170" ry="25" filter="url(#shadow)"/>
+  <path d="M139 272c10 80 51 147 141 153 90-6 131-73 141-153H139Z" fill="url(#bowl)" stroke="#D0B78D" stroke-width="3"/>
+  <path d="M159 302c21 51 57 90 121 95 64-5 100-44 121-95" stroke="#B7894D" stroke-opacity=".46" stroke-width="3"/>
+  <path d="M198 364c31 20 57 28 82 28s51-8 82-28" stroke="#B7894D" stroke-opacity=".4" stroke-width="2"/>
+  <ellipse cx="280" cy="272" fill="url(#rim)" rx="146" ry="58"/>
+  <ellipse cx="280" cy="265" fill="#FBF5E9" rx="136" ry="50"/>
+  <ellipse cx="280" cy="266" fill="url(#soup)" rx="122" ry="41"/>
+  <path d="M194 272c15-17 34-18 48-2 9 10 5 20-5 23-14 5-31-8-43-21Zm75-21c17-13 34-10 43 5 7 11 1 20-10 21-14 1-26-12-33-26Zm57 30c16-15 33-14 44 1 8 10 4 20-7 23-14 4-29-8-37-24Z" fill="#D98455" stroke="#EFBB89" stroke-width="2"/>
+  <path d="M216 279c13-2 18 7 28 9m31-38c11 0 17 6 23 14m44 18c10-3 17 1 24 8" stroke="#6D251D" stroke-linecap="round" stroke-width="3"/>
+  <path d="M218 247c13-12 24-11 31 1 6 10 1 18-8 18-10 0-18-8-23-19Zm75-10c13-11 25-9 30 3 4 10-2 17-11 16-9-1-15-10-19-19Z" fill="#E8B74C"/>
+  <circle cx="177" cy="267" r="6" fill="#F5D581"/><circle cx="373" cy="265" r="5" fill="#F5D581"/><circle cx="249" cy="292" r="4" fill="#F5D581"/>
+  <path d="M182 250c-7-17 1-28 12-31 9-2 17 5 16 14-2 11-14 15-28 17Zm185-8c4-17 16-23 26-18 9 5 10 15 3 21-8 7-19 4-29-3Z" fill="#587447"/>
+  <path d="M188 249c8-9 12-17 15-28m165 22c12-5 19-12 25-22" stroke="#D5D09A" stroke-linecap="round" stroke-width="3"/>
+  <path d="M144 271c48 19 87 28 136 28s88-9 136-28" stroke="#8A481F" stroke-opacity=".4" stroke-width="2"/>
+  <circle cx="280" cy="267" r="132" stroke="#FFF7E2" stroke-opacity=".8" stroke-width="2"/>
+</svg>

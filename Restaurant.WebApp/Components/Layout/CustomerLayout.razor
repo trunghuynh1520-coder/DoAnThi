@@ -1,0 +1,35 @@
+@inherits LayoutComponentBase
+
+<div class="customer-layout">
+    <TopNav />
+
+    <main class="customer-main" id="main-content">
+        <article class="customer-content">
+            @Body
+        </article>
+    </main>
+
+    <footer class="customer-footer">
+        <div class="customer-footer-inner">
+            <div class="customer-footer-brand">
+                <span aria-hidden="true">🏮</span>
+                <span><strong>Nhà Hàng Món Huế</strong> — Tinh hoa ẩm thực Cố Đô</span>
+            </div>
+            <div class="customer-footer-links">
+                <a href="/">Trang chủ</a>
+                <a href="/menu">Thực đơn</a>
+                <a href="/reservation">Đặt bàn</a>
+                <a href="tel:19006868">📞 1900 6868</a>
+            </div>
+            <div class="customer-footer-copy">
+                © 2026 Nhà Hàng Món Huế · Đặt bàn &amp; gọi món trực tuyến · Mở cửa 08:00 – 22:00
+            </div>
+        </div>
+    </footer>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    <span>⚠️ Đã xảy ra lỗi hệ thống.</span>
+    <a href="." class="reload">Tải lại trang</a>
+    <span class="dismiss">🗙</span>
+</div>

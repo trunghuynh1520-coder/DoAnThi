@@ -1,0 +1,111 @@
+@* TopNav.razor – điều hướng ngang dành cho khách hàng *@
+@implements IDisposable
+@inject NavigationManager Nav
+
+<header class="topnav" role="banner">
+    <div class="topnav-inner">
+        <!-- LOGO -->
+        <a href="/" class="topnav-brand" aria-label="Nhà Hàng Món Huế – Trang chủ">
+            <span class="topnav-brand-icon" aria-hidden="true">🏮</span>
+            <span class="topnav-brand-text">
+                <span class="topnav-brand-name">Món Huế</span>
+                <span class="topnav-brand-sub">Ẩm Thực Hoàng Gia</span>
+            </span>
+        </a>
+
+        <!-- NAVIGATION LINKS (desktop) -->
+        <nav class="topnav-links @(navOpen ? "topnav-links--open" : "")"
+             aria-label="Điều hướng chính"
+             id="topnav-menu">
+            <a href="/"           class="topnav-link @IsActive("")"    @onclick="CloseNav">🏠 Trang Chủ</a>
+            <a href="/menu"       class="topnav-link @IsActive("menu")"       @onclick="CloseNav">🍜 Thực Đơn</a>
+            <a href="/reservation" class="topnav-link @IsActive("reservation")" @onclick="CloseNav">📅 Đặt Bàn</a>
+
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <a href="/admin/tables" class="topnav-link @IsActive("admin")" @onclick="CloseNav">🪑 Quản Trị</a>
+                </Authorized>
+            </AuthorizeView>
+
+            <!-- Hotline (mobile only, inside nav) -->
+            <div class="topnav-hotline-mobile">
+                <span>📞 Hotline:</span>
+                <a href="tel:19006868" class="topnav-hotline-num">1900 6868</a>
+            </div>
+        </nav>
+
+        <!-- RIGHT SIDE (desktop) -->
+        <div class="topnav-right">
+            <a href="tel:19006868" class="topnav-hotline" aria-label="Gọi Hotline 1900 6868">
+                <span class="topnav-hotline-icon" aria-hidden="true">📞</span>
+                <span class="topnav-hotline-num">1900 6868</span>
+            </a>
+
+            <AuthorizeView>
+                <Authorized Context="authCtx">
+                    <span class="topnav-username" aria-label="Đăng nhập với tên @authCtx.User.Identity?.Name">
+                        👑 @authCtx.User.Identity?.Name
+                    </span>
+                    <a href="/logout" class="topnav-btn topnav-btn--ghost">Đăng xuất</a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/login" class="topnav-btn topnav-btn--ghost">Đăng nhập</a>
+                </NotAuthorized>
+            </AuthorizeView>
+
+            <a href="/reservation" class="topnav-btn topnav-btn--cta">Đặt Bàn Ngay</a>
+        </div>
+
+        <!-- HAMBURGER BUTTON -->
+        <button class="topnav-hamburger"
+                type="button"
+                @onclick="ToggleNav"
+                aria-controls="topnav-menu"
+                aria-expanded="@navOpen.ToString().ToLower()"
+                aria-label="@(navOpen ? "Đóng menu điều hướng" : "Mở menu điều hướng")">
+            <span class="topnav-hamburger-bar @(navOpen ? "topnav-hamburger-bar--top-open" : "")" aria-hidden="true"></span>
+            <span class="topnav-hamburger-bar @(navOpen ? "topnav-hamburger-bar--mid-open" : "")" aria-hidden="true"></span>
+            <span class="topnav-hamburger-bar @(navOpen ? "topnav-hamburger-bar--bot-open" : "")" aria-hidden="true"></span>
+        </button>
+    </div>
+
+    <!-- OVERLAY (đóng nav khi nhấn ra ngoài trên mobile) -->
+    @if (navOpen)
+    {
+        <div class="topnav-overlay" @onclick="CloseNav" aria-hidden="true"></div>
+    }
+</header>
+
+@code {
+    private bool navOpen = false;
+    private string currentPath = "";
+
+    protected override void OnInitialized()
+    {
+        currentPath = new Uri(Nav.Uri).AbsolutePath.TrimStart('/').ToLower();
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        currentPath = new Uri(e.Location).AbsolutePath.TrimStart('/').ToLower();
+        navOpen = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleNav() => navOpen = !navOpen;
+    private void CloseNav() => navOpen = false;
+
+    /// <summary>Trả về "active" nếu path hiện tại khớp với segment.</summary>
+    private string IsActive(string segment)
+    {
+        if (segment == "")
+            return currentPath == "" ? "active" : "";
+        return currentPath.StartsWith(segment, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+    }
+}

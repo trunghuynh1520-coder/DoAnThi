@@ -1,0 +1,51 @@
+@inherits LayoutComponentBase
+
+<div class="page admin-layout">
+    <aside class="sidebar">
+        <NavMenu />
+    </aside>
+
+    <main class="main-content-area">
+        <header class="top-row">
+            <div class="top-row-left">
+                <span class="restaurant-badge">🏮 Cố Đô Huế • Ẩm Thực Cung Đình</span>
+            </div>
+            <div class="top-row-right">
+                <AuthorizeView>
+                    <Authorized Context="authContext">
+                        <div class="user-greeting">
+                            <span class="avatar-icon">👑</span>
+                            <span>Xin chào, <strong>@authContext.User.Identity?.Name</strong></span>
+                            <span class="badge-role">@(authContext.User.IsInRole("Admin") ? "Quản trị viên" : "Người dùng")</span>
+                        </div>
+                        <a href="/logout" class="btn-top-logout">
+                            <span>Đăng xuất</span> ➜
+                        </a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login" class="btn-top-login">
+                            <span>🔐 Đăng nhập</span>
+                        </a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </header>
+
+        <article class="content">
+            @Body
+        </article>
+
+        <footer class="main-footer">
+            <div class="footer-content">
+                <span>© 2026 Nhà Hàng Món Huế — Hệ thống quản trị nội bộ.</span>
+                <span class="footer-status">Hệ thống mở cửa: 08:00 – 22:00</span>
+            </div>
+        </footer>
+    </main>
+</div>
+
+<div id="blazor-error-ui" data-nosnippet>
+    <span>⚠️ Đã xảy ra lỗi hệ thống.</span>
+    <a href="." class="reload">Tải lại trang</a>
+    <span class="dismiss">🗙</span>
+</div>

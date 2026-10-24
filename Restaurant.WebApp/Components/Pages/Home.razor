@@ -1,96 +1,93 @@
 @page "/"
+@layout CustomerLayout
 
 <PageTitle>Trang Chủ - Nhà Hàng Món Huế Cung Đình</PageTitle>
 
-<!-- HERO SECTION -->
-<div class="hero-section">
+<section class="hero-section">
     <div class="hero-content">
-        <div class="section-label">🏮 Hương Vị Kinh Kỳ Xưa</div>
-        <h1 class="hero-title">Nhà Hàng Món Huế</h1>
+        <div class="hero-kicker"><span></span> ẨM THỰC CỐ ĐÔ · PHONG VỊ HOÀNG GIA</div>
+        <h1 class="hero-title">Hương vị Huế,<br /><em>trọn vẹn trong từng món.</em></h1>
         <p class="hero-desc">
-            Trải nghiệm ẩm thực cung đình Huế đích thực giữa lòng đô thị. Từng món ăn là một tác phẩm nghệ thuật, kết tinh từ nguyên liệu tươi ngon và công thức bí truyền cố đô.
+            Từ tô bún bò đậm đà đến những món bánh cung đình tinh tế — khám phá nét riêng của ẩm thực Huế ngay tại bàn của bạn.
         </p>
         <div class="quick-links">
-            <a href="/menu" class="btn-hero-primary">🍜 Khám Phá Thực Đơn</a>
-            <a href="/reservation" class="btn-hero-secondary">📅 Đặt Bàn Ngay</a>
+            <a href="/menu" class="btn-hero-primary">Khám phá thực đơn <span aria-hidden="true">↗</span></a>
+            <a href="/reservation" class="btn-hero-secondary">Đặt bàn trước</a>
+        </div>
+        <div class="hero-service-notes">
+            <span><b>01</b> Chọn bàn thuận tiện</span>
+            <span><b>02</b> Gọi món tại bàn</span>
+            <span><b>03</b> Thanh toán nhanh gọn</span>
         </div>
     </div>
-    <div class="hero-floating-badge">
-        <div class="badge-inner">
-            <span class="badge-num">100%</span>
-            <span class="badge-txt">Chuẩn Vị Cố Đô</span>
-        </div>
-    </div>
-</div>
+    <div class="hero-visual" aria-label="Minh họa món bún bò Huế">
+        <div class="hero-visual-halo"></div>
+        <img src="/images/hero-bg.jpg"
+             alt="Không gian ẩm thực Nhà Hàng Món Huế"
+             class="hero-real-img"
+             width="600" height="420"
+             loading="eager"
+             onerror="this.style.display='none'" />
 
-<!-- ĐIỂM NỔI BẬT (FEATURE HIGHLIGHTS) -->
-<div class="section-heading-wrapper text-center my-4">
-    <span class="section-label">DỊCH VỤ CỦA CHÚNG TÔI</span>
-    <h2 class="section-main-title">Trải Nghiệm Đẳng Cấp</h2>
-    <p class="section-sub-title">Đặt bàn linh hoạt, gọi món tại bàn thuận tiện, phục vụ chu đáo</p>
-</div>
+        <div class="hero-dish-note">
+            <span>MÓN ĐẶC SẮC</span>
+            <strong>Bún bò Huế</strong>
+            <small>Đậm đà · Thơm nồng · Tròn vị</small>
+        </div>
+        <div class="hero-seal"><span>VỊ</span><small>CỐ ĐÔ</small></div>
+    </div>
+</section>
 
-<div class="row g-4 mb-5">
-    <div class="col-md-4">
-        <div class="feature-card h-100">
-            <div class="feature-icon-wrapper feature-icon-menu" aria-hidden="true"><span>✦</span></div>
-            <h3 class="feature-title">Thực Đơn Đa Dạng</h3>
-            <p class="feature-text">Bún bò Huế cay nồng thơm lừng, bánh bèo, bánh nậm, bánh lọc mềm mịn, nem lụi nướng than hoa cùng chè hạt sen long nhãn thanh tao.</p>
-            <a href="/menu" class="feature-link">Xem thực đơn ➔</a>
+<section class="home-services" aria-labelledby="services-title">
+    <div class="section-heading-wrapper home-section-heading">
+        <div>
+            <span class="section-label">TRẢI NGHIỆM TẠI MÓN HUẾ</span>
+            <h2 id="services-title" class="section-main-title">Một bữa ngon, thật thảnh thơi</h2>
         </div>
+        <p class="section-sub-title">Chăm chút từ lúc chọn bàn đến khi khép lại bữa ăn.</p>
     </div>
-    <div class="col-md-4">
-        <div class="feature-card h-100 highlighted-card">
-            <div class="feature-icon-wrapper feature-icon-reservation" aria-hidden="true"><span>◷</span></div>
-            <h3 class="feature-title">Đặt Bàn Thông Minh</h3>
-            <p class="feature-text">Hệ thống chọn bàn trực quan, tự động đối chiếu số lượng khách và gợi ý bàn phù hợp. Lưu thông tin tức thì, không lo hết chỗ giờ cao điểm.</p>
-            <a href="/reservation" class="feature-link">Đặt bàn ngay ➔</a>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="feature-card h-100">
-            <div class="feature-icon-wrapper feature-icon-tables" aria-hidden="true"><span>⌂</span></div>
-            <h3 class="feature-title">Sơ Đồ Bàn Trực Quan</h3>
-            <p class="feature-text">Dành cho nhân viên thu ngân và quản lý: Theo dõi bàn có khách, bàn trống theo thời gian thực và quản lý hóa đơn gọi món nhanh chóng.</p>
-            <a href="/admin/tables" class="feature-link">Xem sơ đồ bàn ➔</a>
-        </div>
-    </div>
-</div>
 
-<!-- BANNER QUY TRÌNH PHỤC VỤ -->
-<div class="workflow-banner">
-    <h3 class="workflow-title">Quy Trình Trải Nghiệm Món Ăn</h3>
+    <div class="row g-3 home-feature-grid">
+        <div class="col-md-4">
+            <a href="/menu" class="feature-card home-feature-card">
+                <div class="home-feature-top"><span class="feature-icon-wrapper feature-icon-menu" aria-hidden="true"><span>✦</span></span><span class="home-feature-index">01</span></div>
+                <h3 class="feature-title">Thực đơn xứ Huế</h3>
+                <p class="feature-text">Bún bò, bánh bèo, bánh nậm, nem lụi và những món ngon thân thuộc của đất cố đô.</p>
+                <span class="feature-link">Xem các món <span aria-hidden="true">↗</span></span>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="/reservation" class="feature-card home-feature-card highlighted-card">
+                <div class="home-feature-top"><span class="feature-icon-wrapper feature-icon-reservation" aria-hidden="true"><span>◷</span></span><span class="home-feature-index">02</span></div>
+                <h3 class="feature-title">Đặt chỗ nhẹ nhàng</h3>
+                <p class="feature-text">Chọn giờ, số khách và bàn phù hợp trước khi đến. Nhà hàng sẵn sàng đón bạn.</p>
+                <span class="feature-link">Giữ chỗ ngay <span aria-hidden="true">↗</span></span>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="/admin/tables" class="feature-card home-feature-card">
+                <div class="home-feature-top"><span class="feature-icon-wrapper feature-icon-tables" aria-hidden="true"><span>⌂</span></span><span class="home-feature-index">03</span></div>
+                <h3 class="feature-title">Phục vụ tại bàn</h3>
+                <p class="feature-text">Nhân viên theo dõi tình trạng bàn, nhận món và thanh toán ngay trên một giao diện.</p>
+                <span class="feature-link">Dành cho nhân viên <span aria-hidden="true">↗</span></span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="workflow-banner home-workflow">
+    <div class="workflow-intro">
+        <span class="section-label">THẬT ĐƠN GIẢN</span>
+        <h2 class="workflow-title">Bữa ăn của bạn<br />chỉ cách vài bước</h2>
+        <p class="text-muted mb-0">Từ lúc chọn bàn đến khi thanh toán, mọi thứ được sắp xếp rõ ràng.</p>
+    </div>
     <div class="workflow-steps">
-        <div class="workflow-step">
-            <div class="step-num">1</div>
-            <div class="step-text">
-                <strong>Đặt bàn / Nhận chỗ</strong>
-                <p>Khách đặt trước hoặc nhân viên mở bàn</p>
-            </div>
-        </div>
-        <div class="workflow-arrow">➔</div>
-        <div class="workflow-step">
-            <div class="step-num">2</div>
-            <div class="step-text">
-                <strong>Chọn món Huế</strong>
-                <p>Chọn bàn trên Menu và thêm món vào giỏ</p>
-            </div>
-        </div>
-        <div class="workflow-arrow">➔</div>
-        <div class="workflow-step">
-            <div class="step-num">3</div>
-            <div class="step-text">
-                <strong>Bếp chuẩn bị & Phục vụ</strong>
-                <p>Hệ thống ghi nhận và phục vụ món tận bàn</p>
-            </div>
-        </div>
-        <div class="workflow-arrow">➔</div>
-        <div class="workflow-step">
-            <div class="step-num">4</div>
-            <div class="step-text">
-                <strong>Thanh toán</strong>
-                <p>Thu ngân đóng bill và kết thúc phiên</p>
-            </div>
-        </div>
+        <div class="workflow-step"><div class="step-num">1</div><div class="step-text"><strong>Chọn bàn</strong><p>Đặt trước hoặc nhận bàn tại chỗ</p></div></div>
+        <div class="workflow-arrow" aria-hidden="true">→</div>
+        <div class="workflow-step"><div class="step-num">2</div><div class="step-text"><strong>Chọn món</strong><p>Khám phá món ngon xứ Huế</p></div></div>
+        <div class="workflow-arrow" aria-hidden="true">→</div>
+        <div class="workflow-step"><div class="step-num">3</div><div class="step-text"><strong>Thưởng thức</strong><p>Nhà bếp chuẩn bị tại chỗ</p></div></div>
+        <div class="workflow-arrow" aria-hidden="true">→</div>
+        <div class="workflow-step"><div class="step-num">4</div><div class="step-text"><strong>Thanh toán</strong><p>Khép lại bữa ăn thuận tiện</p></div></div>
     </div>
-</div>
+</section>
