@@ -40,13 +40,14 @@
     <div class="payment-qr-backdrop" role="presentation">
         <section class="payment-qr-dialog" role="dialog" aria-modal="true" aria-labelledby="payment-qr-title">
             <button type="button" class="payment-qr-close" aria-label="Đóng" @onclick="CancelPayment">×</button>
-            <div class="section-label mb-1">THANH TOÁN CHUYỂN KHOẢN</div>
-            <h2 id="payment-qr-title" class="h4 mb-2">Quét mã VietQR</h2>
-            <p class="text-muted mb-3">Bàn @paymentTableNumber · MB Bank · 0935880626</p>
-            <img class="payment-qr-image" src="@paymentQrUrl" alt="Mã QR thanh toán MB Bank" />
+            <div class="section-label mb-1">THANH TOÁN CHUYỂN KHOẢN (MÔ PHỎNG DEMO)</div>
+            <h2 id="payment-qr-title" class="h4 mb-2">Quét mã VietQR (Demo)</h2>
+            <p class="text-muted mb-2">Bàn @paymentTableNumber · MB Bank · 0935880626</p>
+            <div class="badge bg-warning text-dark mb-3 px-3 py-1">⚠️ Mã QR demo kiểm thử nghiệp vụ thu ngân</div>
+            <img class="payment-qr-image" src="@paymentQrUrl" alt="Mã QR thanh toán MB Bank demo" />
             <div class="payment-qr-amount">@paymentAmount.ToString("N0")₫</div>
             <div class="payment-qr-reference">Nội dung: <strong>@paymentReference</strong></div>
-            <p class="small text-muted mt-3 mb-3">Sau khi kiểm tra tiền đã vào tài khoản, xác nhận để đóng hóa đơn và trả bàn.</p>
+            <p class="small text-muted mt-3 mb-3">Sau khi kiểm tra tiền đã vào tài khoản (hoặc xác nhận thu ngân demo), bấm xác nhận để đóng hóa đơn và trả bàn.</p>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-outline-secondary flex-grow-1" @onclick="CancelPayment" disabled="@isLoading">Để sau</button>
                 <button type="button" class="btn btn-success flex-grow-1" @onclick="ConfirmPayment" disabled="@isLoading">

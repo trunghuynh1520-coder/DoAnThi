@@ -720,28 +720,35 @@ h1 {
 }
 
 .cat-tab {
-    padding: 0.5rem 1.2rem;
-    border-radius: 24px;
-    border: 1.5px solid var(--border-color);
-    background: #FFFFFF;
-    color: var(--text-muted);
-    font-size: 0.88rem;
-    font-weight: 500;
+    padding: 0.55rem 1.25rem;
+    border-radius: 999px;
+    border: 1.5px solid rgba(200, 149, 42, 0.35);
+    background: #FFFDF9;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(30, 15, 7, 0.04);
 }
 
 .cat-tab:hover {
     border-color: var(--hue-gold);
-    color: var(--hue-gold);
+    color: var(--hue-red);
+    background: #FFFFFF;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(200, 149, 42, 0.15);
 }
 
 .cat-tab.active {
-    background: linear-gradient(135deg, var(--hue-red) 0%, #a82424 100%);
-    border-color: var(--hue-red);
-    color: #FFF;
+    background: linear-gradient(135deg, #8B1E1E 0%, #A82E2E 100%);
+    border-color: #8B1E1E;
+    color: #FFFFFF !important;
     font-weight: 600;
-    box-shadow: 0 3px 10px rgba(139, 30, 30, 0.25);
+    box-shadow: 0 4px 12px rgba(139, 30, 30, 0.3);
 }
 
 /* Menu item cards */
@@ -2513,6 +2520,11 @@ html, body {
     .customer-content {
         padding: 1.4rem 1.25rem 2.5rem;
     }
+
+    .order-panel {
+        position: static !important;
+        margin-top: 1rem;
+    }
 }
 
 @media (max-width: 575.98px) {
@@ -2565,5 +2577,78 @@ html, body {
     .customer-content {
         padding: 0.85rem 0.65rem 1.8rem;
     }
+}
+
+/* Quick time chips & guest stepper for Reservation */
+.btn-time-chip {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--hue-red);
+    background: #FFFBF5;
+    border: 1px solid rgba(200, 149, 42, 0.4);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-time-chip:hover {
+    background: #8B1E1E;
+    color: #FFFFFF;
+    border-color: #8B1E1E;
+}
+
+.guest-stepper-input {
+    display: flex;
+    align-items: center;
+}
+
+.btn-stepper {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFFDF9;
+    border: 1.5px solid rgba(200, 149, 42, 0.4);
+    border-radius: 10px;
+    color: var(--hue-red);
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-stepper:hover:not(:disabled) {
+    background: #8B1E1E;
+    color: #FFFFFF;
+    border-color: #8B1E1E;
+}
+
+.btn-stepper:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.btn-demo-fill {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: #FAF6F0;
+    border: 1px dashed rgba(200, 149, 42, 0.5);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.btn-demo-fill:hover {
+    background: #FFFFFF;
+    color: var(--hue-red);
+    border-color: var(--hue-red);
+    border-style: solid;
+    box-shadow: 0 2px 6px rgba(139, 30, 30, 0.15);
 }
 

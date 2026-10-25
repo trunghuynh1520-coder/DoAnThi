@@ -88,15 +88,28 @@ else
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Thời gian đến dùng bữa <span class="text-danger">*</span></label>
-                                <InputDate Type="InputDateType.DateTimeLocal" class="form-control" @bind-Value="model.ReservationTime" />
+                                <InputDate Type="InputDateType.DateTimeLocal" class="form-control" @bind-Value="model.ReservationTime" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" />
                                 <ValidationMessage For="@(() => model.ReservationTime)" class="validation-message" />
+                                <div class="quick-time-chips mt-2 d-flex flex-wrap gap-1">
+                                    <button type="button" class="btn-time-chip" @onclick='() => SetQuickTime("lunch")'>Trưa 11:30</button>
+                                    <button type="button" class="btn-time-chip" @onclick='() => SetQuickTime("lunch_late")'>Trưa 12:30</button>
+                                    <button type="button" class="btn-time-chip" @onclick='() => SetQuickTime("dinner")'>Tối 18:00</button>
+                                    <button type="button" class="btn-time-chip" @onclick='() => SetQuickTime("dinner_late")'>Tối 19:30</button>
+                                </div>
                             </div>
                         </div>
 
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Số lượng khách <span class="text-danger">*</span></label>
-                                <InputNumber class="form-control" @bind-Value="model.GuestCount" @oninput="OnGuestCountChanged" />
+                                <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                                    <span>Số lượng khách <span class="text-danger">*</span></span>
+                                    <small class="text-muted fw-normal">@(model.GuestCount <= 2 ? "Bàn đôi" : model.GuestCount <= 4 ? "Bàn 4 người" : "Bàn tiệc đông")</small>
+                                </label>
+                                <div class="guest-stepper-input d-flex align-items-center gap-2">
+                                    <button type="button" class="btn-stepper" @onclick="() => StepGuestCount(-1)" disabled="@(model.GuestCount <= 1)">−</button>
+                                    <InputNumber class="form-control text-center fw-bold" @bind-Value="model.GuestCount" @oninput="OnGuestCountChanged" min="1" max="20" />
+                                    <button type="button" class="btn-stepper" @onclick="() => StepGuestCount(1)" disabled="@(model.GuestCount >= 20)">+</button>
+                                </div>
                                 <ValidationMessage For="@(() => model.GuestCount)" class="validation-message" />
                             </div>
                         </div>
@@ -210,14 +223,48 @@ else
         }
     }
 
+    private void SetQuickTime(string slot)
+    {
+        var targetDate = DateTime.Today;
+        // Nếu giờ hiện tại đã qua buổi trưa, gợi ý sang trưa mai hoặc tối nay
+        var hour = slot switch
+        {
+            "lunch" => (h: 11, m: 30),
+            "lunch_late" => (h: 12, m: 30),
+            "dinner" => (h: 18, m: 0),
+            "dinner_late" => (h: 19, m: 30),
+            _ => (h: 18, m: 0)
+        };
+
+        var selected = targetDate.AddHours(hour.h).AddMinutes(hour.m);
+        if (selected < DateTime.Now)
+        {
+            // Nếu khung giờ trong ngày đã qua thì chuyển sang ngày mai
+            selected = selected.AddDays(1);
+        }
+
+        model.ReservationTime = selected;
+    }
+
+    private void StepGuestCount(int delta)
+    {
+        int newCount = Math.Clamp(model.GuestCount + delta, 1, 20);
+        model.GuestCount = newCount;
+        var currentTable = tables?.FirstOrDefault(t => t.TableId == model.TableId);
+        if (currentTable != null && currentTable.Capacity < newCount)
+        {
+            model.TableId = 0;
+        }
+    }
+
     private void OnGuestCountChanged(ChangeEventArgs e)
     {
         if (int.TryParse(e.Value?.ToString(), out int val))
         {
-            model.GuestCount = val;
+            model.GuestCount = Math.Clamp(val, 1, 20);
             // Nếu bàn đang chọn không đủ sức chứa thì reset chọn bàn
             var currentTable = tables?.FirstOrDefault(t => t.TableId == model.TableId);
-            if (currentTable != null && currentTable.Capacity < val)
+            if (currentTable != null && currentTable.Capacity < model.GuestCount)
             {
                 model.TableId = 0;
             }
