@@ -80,8 +80,9 @@ public class TableOrderRepository : ITableOrderRepository
         try
         {
             string orderSql = @"
-                UPDATE TableOrder 
-                SET IsClosed = @IsClosed, TotalAmount = @TotalAmount 
+                UPDATE TableOrder
+                SET IsClosed = @IsClosed, TotalAmount = @TotalAmount, ClosedAt = @ClosedAt,
+                    PaymentMethod = @PaymentMethod
                 WHERE OrderId = @OrderId";
             await connection.ExecuteAsync(orderSql, order, transaction);
 

@@ -1,0 +1,216 @@
+@page "/admin/dashboard"
+@layout AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@using Restaurant.UseCases.Models
+@attribute [Authorize(Roles = "Admin")]
+@inject GetAdminDashboardUseCase DashboardUseCase
+
+<PageTitle>Tổng quan kinh doanh | Nhà Hàng Món Huế</PageTitle>
+
+<style>
+    .dashboard-page { width:min(100%,1540px); margin-inline:auto; }
+    .dashboard-heading { display:flex; align-items:center; justify-content:space-between; gap:1.25rem; margin:.15rem 0 1.35rem; }
+    .dashboard-heading h1 { margin:.15rem 0 .25rem; color:#241714; font-size:clamp(1.8rem,3vw,2.45rem); font-weight:750; line-height:1.2; }
+    .dashboard-heading p { margin:0; color:#786960; }
+    .dashboard-refresh { flex-shrink:0; }
+    .dashboard-hero { position:relative; display:grid; grid-template-columns:minmax(250px,.85fr) 1px minmax(0,2fr); gap:clamp(1.35rem,3vw,3rem); align-items:center; min-height:225px; padding:clamp(1.5rem,3vw,2.5rem); margin-bottom:1.15rem; overflow:hidden; border:1px solid rgba(222,194,144,.24); border-radius:18px; color:#fffaf1; background:radial-gradient(ellipse at 90% 0%,rgba(182,140,76,.28),transparent 38%),linear-gradient(120deg,#241714 0%,#3a211b 58%,#542c24 100%); box-shadow:0 16px 36px rgba(41,25,19,.12); }
+    .dashboard-hero::after { position:absolute; right:-55px; bottom:-130px; width:300px; height:300px; border:1px solid rgba(231,205,157,.16); border-radius:50%; content:""; box-shadow:0 0 0 18px rgba(231,205,157,.025),0 0 0 40px rgba(231,205,157,.02); pointer-events:none; }
+    .dashboard-revenue-lead,.dashboard-live-metrics,.dashboard-updated { position:relative; z-index:1; }
+    .dashboard-revenue-lead { display:grid; gap:.45rem; }
+    .dashboard-overline,.dashboard-live-metrics>div>span { color:#d9bc85; font-size:.7rem; font-weight:700; letter-spacing:.08em; }
+    .dashboard-revenue-lead>strong { color:#fffaf1; font-size:clamp(2.2rem,4.4vw,3.65rem); font-weight:700; line-height:1.08; white-space:nowrap; }
+    .dashboard-revenue-lead>strong small { margin-left:.28rem; color:#dfc68f; font-size:.48em; }
+    .dashboard-revenue-meta { color:rgba(255,250,241,.72); font-size:.86rem; }
+    .dashboard-hero-divider { width:1px; height:110px; background:rgba(255,250,241,.2); }
+    .dashboard-live-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1.25rem; }
+    .dashboard-live-metrics>div { display:grid; align-content:center; gap:.4rem; min-width:0; }
+    .dashboard-live-metrics>div>strong { color:#fffaf1; font-size:1.55rem; line-height:1.2; }
+    .dashboard-live-metrics>div>strong small { color:rgba(255,250,241,.72); font-size:.72rem; font-weight:500; }
+    .dashboard-live-metrics>div>small { color:rgba(255,250,241,.68); font-size:.72rem; }
+    .dashboard-progress { height:5px; overflow:hidden; border-radius:99px; background:rgba(255,255,255,.16); }
+    .dashboard-progress i { display:block; height:100%; border-radius:inherit; background:#d9bc85; }
+    .dashboard-updated { position:absolute; right:1.5rem; bottom:.85rem; color:rgba(255,250,241,.62); font-size:.65rem; }
+    .dashboard-kpi-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin-bottom:1.15rem; }
+    .dashboard-kpi { display:flex; align-items:center; gap:.95rem; min-width:0; padding:1.1rem 1.2rem; border:1px solid rgba(91,59,43,.13); border-radius:14px; background:#fffdf9; box-shadow:0 5px 16px rgba(49,32,24,.045); }
+    .dashboard-kpi-icon { display:grid; flex:0 0 43px; width:43px; height:43px; place-items:center; border:1px solid rgba(182,140,76,.2); border-radius:12px; color:#782b2a; background:#f3ead8; font-size:1.2rem; font-weight:700; }
+    .dashboard-kpi>div { display:grid; min-width:0; gap:.12rem; }
+    .dashboard-kpi>div>small { color:#786960; font-size:.64rem; font-weight:700; }
+    .dashboard-kpi>div>strong { color:#241714; font-size:1.28rem; line-height:1.35; }
+    .dashboard-kpi>div>span { color:#786960; font-size:.7rem; }
+    .dashboard-main-grid,.dashboard-insights-grid { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(300px,.85fr); gap:1.15rem; margin-bottom:1.15rem; }
+    .dashboard-insights-grid { grid-template-columns:minmax(0,1.4fr) minmax(300px,.9fr); margin-bottom:0; }
+    .dashboard-page .report-panel { min-width:0; height:100%; padding:1.4rem; border:1px solid rgba(91,59,43,.13); border-radius:15px; background:#fffdf9; box-shadow:0 5px 16px rgba(49,32,24,.045); }
+    .dashboard-page .report-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.15rem; }
+    .dashboard-page .report-panel-heading h2 { margin:.18rem 0 0; color:#241714; font-size:1.18rem; font-weight:700; line-height:1.35; }
+    .dashboard-page .report-panel-heading p { margin:.25rem 0 0; color:#786960; font-size:.76rem; }
+    .dashboard-page .section-label { color:#9b743d; font-size:.68rem; font-weight:700; }
+    .report-period { padding:.34rem .58rem; border:1px solid rgba(91,59,43,.13); border-radius:999px; color:#786960; background:#fff; font-size:.62rem; font-weight:700; white-space:nowrap; }
+    .revenue-panel .revenue-chart { height:258px; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:.75rem; padding-top:.4rem; }
+    .revenue-chart-column { display:grid; grid-template-rows:1.5rem 1fr 1.25rem; min-width:0; gap:.35rem; text-align:center; }
+    .revenue-chart-value { color:#786960; font-size:.68rem; white-space:nowrap; }
+    .revenue-chart-track,.hour-chart-track { display:flex; align-items:end; justify-content:center; height:100%; border-bottom:1px solid rgba(91,59,43,.13); background:linear-gradient(to top,rgba(182,140,76,.07) 1px,transparent 1px); background-size:100% 25%; }
+    .revenue-chart-bar { width:min(54px,72%); min-height:3px; border-radius:7px 7px 2px 2px; background:linear-gradient(180deg,#c5a36a,#8d4a3d); }
+    .revenue-chart-column>span,.hour-chart-column>span { color:#786960; font-size:.72rem; }
+    .revenue-panel-footer { display:flex; justify-content:space-between; gap:1rem; padding-top:.85rem; margin-top:.25rem; border-top:1px solid rgba(91,59,43,.13); color:#786960; font-size:.76rem; }
+    .revenue-panel-footer strong { color:#782b2a; font-size:.88rem; }
+    .top-item-list { padding:0; margin:0; list-style:none; }
+    .top-item-list li { display:flex; align-items:center; gap:.75rem; padding:.92rem 0; border-bottom:1px solid rgba(91,59,43,.13); }
+    .top-item-list li:last-child { border-bottom:0; }
+    .top-item-rank { display:grid; flex:0 0 31px; width:31px; height:31px; place-items:center; border-radius:10px; color:#782b2a; background:#f3ead8; font-size:.68rem; font-weight:800; }
+    .top-item-name { flex:1; min-width:0; overflow-wrap:anywhere; font-size:.84rem; font-weight:700; }
+    .top-item-name small { display:block; margin-top:.16rem; color:#786960; font-size:.76rem; font-weight:400; }
+    .top-item-list li>strong { color:#241714; font-size:.8rem; white-space:nowrap; }
+    .top-item-list li>strong small { color:#786960; font-size:.68rem; font-weight:500; }
+    .hour-panel .hour-chart { height:205px; display:grid; grid-template-columns:repeat(auto-fit,minmax(26px,1fr)); gap:.45rem; padding-top:.35rem; }
+    .hour-chart-column { display:grid; grid-template-rows:1fr 1.2rem; gap:.3rem; min-width:0; text-align:center; }
+    .hour-chart-track { align-items:end; }
+    .hour-chart-bar { width:min(30px,80%); min-height:3px; margin:auto auto 0; border-radius:5px 5px 1px 1px; background:linear-gradient(180deg,#c5a36a,#8d4a3d); }
+    .hour-chart-column>span { font-size:.65rem; }
+    .returning-summary { display:flex; flex:1; align-items:center; gap:1rem; min-height:100px; padding:1rem; margin-bottom:.85rem; border:1px solid rgba(182,140,76,.15); border-radius:12px; background:linear-gradient(115deg,#f6efdf,#fcfaf5); }
+    .returning-summary strong { color:#782b2a; font-size:2.55rem; line-height:1; }
+    .returning-summary span { color:#786960; font-size:.82rem; }
+    .returning-detail { display:flex; justify-content:space-between; gap:1rem; padding:.55rem .1rem; border-bottom:1px solid rgba(91,59,43,.13); font-size:.8rem; }
+    .returning-detail strong { color:#241714; }
+    .report-footnote { margin:auto 0 0; padding-top:.9rem; color:#786960; font-size:.73rem; line-height:1.5; }
+    .report-empty { display:grid; min-height:150px; place-items:center; padding:1rem; color:#786960; text-align:center; }
+    @@media(max-width:1199.98px) { .dashboard-hero { grid-template-columns:minmax(210px,.75fr) 1px minmax(0,2fr); gap:1.5rem; } .dashboard-live-metrics { gap:.8rem; } }
+    @@media(max-width:991.98px) { .dashboard-hero { grid-template-columns:1fr; gap:1.2rem; } .dashboard-hero-divider { display:none; } .dashboard-revenue-lead { padding-bottom:1rem; border-bottom:1px solid rgba(255,250,241,.18); } .dashboard-main-grid,.dashboard-insights-grid { grid-template-columns:1fr; } }
+    @@media(max-width:767.98px) { .dashboard-heading { align-items:flex-start; } .dashboard-heading p { max-width:38ch; font-size:.86rem; } .dashboard-live-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); } .dashboard-kpi-grid { grid-template-columns:1fr; gap:.65rem; } .dashboard-kpi { padding:.85rem 1rem; } .dashboard-kpi-icon { flex-basis:38px; width:38px; height:38px; } .dashboard-page .report-panel { padding:1.05rem; } }
+    @@media(max-width:575.98px) { .dashboard-heading { flex-direction:column; } .dashboard-refresh { align-self:stretch; justify-content:center; } .dashboard-hero { padding:1.25rem; border-radius:14px; } .dashboard-live-metrics { grid-template-columns:1fr; gap:.85rem; } .dashboard-live-metrics>div { grid-template-columns:1fr auto; align-items:center; } .dashboard-live-metrics>div>span,.dashboard-live-metrics>div>small { grid-column:1; } .dashboard-live-metrics>div>strong { grid-column:2; grid-row:1/span 2; } .dashboard-live-metrics .dashboard-progress { grid-column:1/-1; } .dashboard-updated { right:1rem; bottom:.55rem; } .revenue-panel .revenue-chart { height:220px; gap:.3rem; } .revenue-panel .revenue-chart-value { font-size:.55rem; } .hour-panel .hour-chart { gap:.22rem; } }
+</style>
+
+
+<div class="dashboard-page">
+<header class="dashboard-heading">
+    <div><div class="section-label">ĐIỀU HÀNH NHÀ HÀNG</div><h1>Tổng quan kinh doanh</h1><p>Toàn cảnh doanh thu và hoạt động phục vụ trong ngày.</p></div>
+    <button class="btn btn-outline-hue dashboard-refresh" @onclick="LoadReport" disabled="@loading"><span aria-hidden="true">↻</span> Cập nhật số liệu</button>
+</header>
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+else if (report is null)
+{
+    <div class="loading-box">Đang tải báo cáo...</div>
+}
+else
+{
+    <section class="dashboard-hero">
+        <div class="dashboard-revenue-lead"><span class="dashboard-overline">DOANH THU HÔM NAY</span><strong>@report.TodayRevenue.ToString("N0")<small>₫</small></strong><span class="dashboard-revenue-meta">@report.TodayInvoiceCount hóa đơn đã thanh toán</span></div>
+        <div class="dashboard-hero-divider"></div>
+        <div class="dashboard-live-metrics">
+            <div><span>ĐANG PHỤC VỤ</span><strong>@report.OccupiedTables <small>/ @report.TotalTables bàn</small></strong><div class="dashboard-progress"><i style="width:@(OccupancyPercent)%"></i></div><small>@OccupancyPercent% công suất</small></div>
+            <div><span>KHÁCH ĐÃ ĐẾN</span><strong>@report.TodayArrivedCount <small>lượt</small></strong><small>@report.TodayArrivedGuests khách check-in hôm nay</small></div>
+            <div><span>LỊCH ĐẶT HÔM NAY</span><strong>@report.TodayReservationCount <small>lịch</small></strong><small>Dự kiến @report.TodayReservedGuests khách</small></div>
+        </div>
+        <div class="dashboard-updated">Cập nhật @DateTime.Now.ToString("HH:mm · dd/MM/yyyy")</div>
+    </section>
+
+    <div class="dashboard-kpi-grid">
+        <article class="dashboard-kpi"><span class="dashboard-kpi-icon">₫</span><div><small>GIÁ TRỊ BILL TRUNG BÌNH</small><strong>@report.AverageInvoice.ToString("N0")₫</strong><span>Trên các hóa đơn đã đóng hôm nay</span></div></article>
+        <article class="dashboard-kpi"><span class="dashboard-kpi-icon">▤</span><div><small>KHÁCH ĐÃ ĐẾN HÔM NAY</small><strong>@report.TodayArrivedGuests</strong><span>Khách được nhân viên ghi nhận</span></div></article>
+        <article class="dashboard-kpi"><span class="dashboard-kpi-icon">◷</span><div><small>KHUNG GIỜ CAO ĐIỂM</small><strong>@(report.ReservationHours.Count > 0 ? $"{report.PeakReservationHour30Days:00}:00" : "—")</strong><span>Dựa trên check-in trong 30 ngày</span></div></article>
+    </div>
+
+    <div class="dashboard-main-grid">
+        <section class="report-panel revenue-panel">
+                <div class="report-panel-heading"><div><span class="section-label">KẾT QUẢ KINH DOANH</span><h2>Doanh thu theo ngày</h2><p>7 ngày gần nhất · Đơn vị: nghìn / triệu đồng</p></div><span class="report-period">7 NGÀY</span></div>
+                @if (report.DailyRevenue.Count == 0 || report.DailyRevenue.All(x => x.Revenue <= 0))
+                {
+                    <div class="report-empty">Chưa có hóa đơn đã thanh toán trong khoảng thời gian này.</div>
+                }
+                else
+                {
+                    <div class="revenue-chart" role="img" aria-label="Biểu đồ doanh thu 7 ngày gần nhất">
+                        @foreach (var point in report.DailyRevenue)
+                        {
+                            var height = BarHeight(point.Revenue, report.DailyRevenue.Select(x => x.Revenue).DefaultIfEmpty().Max());
+                            <div class="revenue-chart-column" title="@point.Date.ToString("dd/MM"): @point.Revenue.ToString("N0")₫">
+                                <div class="revenue-chart-value">@(point.Revenue > 0 ? ShortMoney(point.Revenue) : "")</div>
+                                <div class="revenue-chart-track"><div class="revenue-chart-bar" style="height:@(height)%"></div></div>
+                                <span>@point.Date.ToString("dd/MM")</span>
+                            </div>
+                        }
+                    </div>
+                }
+                <div class="revenue-panel-footer"><span>Tổng doanh thu 7 ngày</span><strong>@report.DailyRevenue.Sum(x => x.Revenue).ToString("N0")₫</strong></div>
+        </section>
+        <section class="report-panel popular-panel">
+                <div class="report-panel-heading"><div><span class="section-label">ĐƯỢC YÊU THÍCH</span><h2>Món bán chạy</h2><p>Thống kê trong 30 ngày</p></div></div>
+                @if (report.TopMenuItems.Count == 0)
+                {
+                    <div class="report-empty">Chưa đủ dữ liệu để xếp hạng món.</div>
+                }
+                else
+                {
+                    <ol class="top-item-list">
+                        @for (var index = 0; index < report.TopMenuItems.Count; index++)
+                        {
+                            var item = report.TopMenuItems[index];
+                            <li><span class="top-item-rank">@((index + 1).ToString("D2"))</span><span class="top-item-name">@item.ItemName<small>@item.Revenue.ToString("N0")₫ doanh thu</small></span><strong>@item.Quantity <small>phần</small></strong></li>
+                        }
+                    </ol>
+                }
+        </section>
+    </div>
+
+    <div class="dashboard-insights-grid">
+            <section class="report-panel hour-panel">
+                <div class="report-panel-heading"><div><span class="section-label">NHỊP ĐỘ PHỤC VỤ</span><h2>Khung giờ khách đến</h2><p>Số khách check-in trong 30 ngày gần nhất</p></div><span class="report-period">30 NGÀY</span></div>
+                @if (report.ReservationHours.Count == 0)
+                {
+                    <div class="report-empty">Chưa có check-in nào trong 30 ngày qua.</div>
+                }
+                else
+                {
+                    <div class="hour-chart" role="img" aria-label="Biểu đồ số khách đã đến theo khung giờ">
+                        @foreach (var point in report.ReservationHours)
+                        {
+                            var height = BarHeight(point.Guests, report.ReservationHours.Max(x => x.Guests));
+                            <div class="hour-chart-column" title="@point.Hour.ToString("00"):00 · @point.Guests khách">
+                                <div class="hour-chart-track"><div class="hour-chart-bar" style="height:@(height)%"></div></div>
+                                <span>@point.Hour.ToString("00")h</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </section>
+            <section class="report-panel returning-panel">
+                <div class="report-panel-heading"><div><span class="section-label">CHĂM SÓC KHÁCH HÀNG</span><h2>Khách quay lại</h2><p>Theo lượt check-in đã xác nhận</p></div></div>
+                <div class="returning-summary">
+                    <strong>@ReturningRate%</strong>
+                    <span>tỷ lệ khách đã quay lại từ 2 lần trở lên trong 30 ngày</span>
+                </div>
+                <div class="returning-detail"><span>Khách đã đến khác nhau</span><strong>@report.DistinctVisitedCustomers30Days</strong></div>
+                <div class="returning-detail"><span>Khách quay lại</span><strong>@report.ReturningVisitedCustomers30Days</strong></div>
+                <div class="returning-detail"><span>Khung giờ đông nhất</span><strong>@(report.ReservationHours.Count > 0 ? $"{report.PeakReservationHour30Days:00}:00" : "Chưa có dữ liệu")</strong></div>
+                <p class="report-footnote">Dựa trên số điện thoại của các lịch đã được nhân viên đánh dấu khách đến.</p>
+            </section>
+    </div>
+}
+</div>
+
+@code {
+    private AdminDashboardReport? report;
+    private bool loading;
+    private string error = string.Empty;
+
+    private int OccupancyPercent => report is null || report.TotalTables == 0 ? 0 : (int)Math.Round(report.OccupiedTables * 100d / report.TotalTables);
+    private int ReturningRate => report is null || report.DistinctVisitedCustomers30Days == 0 ? 0 :
+        (int)Math.Round(report.ReturningVisitedCustomers30Days * 100d / report.DistinctVisitedCustomers30Days);
+
+    protected override Task OnInitializedAsync() => LoadReport();
+
+    private async Task LoadReport()
+    {
+        loading = true;
+        error = string.Empty;
+        try { report = await DashboardUseCase.ExecuteAsync(DateTime.Now); }
+        catch (Exception ex) { error = $"Không tải được báo cáo: {ex.Message}"; }
+        finally { loading = false; }
+    }
+
+    private static int BarHeight(double value, double max) => max <= 0 ? 0 : Math.Max(4, (int)Math.Round(value * 100d / max));
+    private static string ShortMoney(double value) => value >= 1_000_000 ? $"{value / 1_000_000:0.#}tr" : $"{value / 1_000:0}k";
+}

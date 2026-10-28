@@ -12,7 +12,7 @@
 ## Chuẩn bị cơ sở dữ liệu
 
 1. Tạo database `RestaurantDB` trên SQL Server.
-2. Mở và chạy [`Restaurant.Plugins.DataStore.SQL/schema.sql`](Restaurant.Plugins.DataStore.SQL/schema.sql) trong database đó. Script tạo 6 bảng cùng dữ liệu mẫu.
+2. Mở và chạy [`Restaurant.Plugins.DataStore.SQL/schema.sql`](Restaurant.Plugins.DataStore.SQL/schema.sql) trong database đó. Script tạo 8 bảng cùng dữ liệu mẫu, bao gồm thực đơn, bàn, đặt chỗ, hóa đơn và nhật ký kho.
 3. Kiểm tra connection string trong `Restaurant.WebApp/Program.cs`, hoặc đặt biến môi trường `ConnectionStrings__DefaultConnection` trước khi chạy. Ví dụ PowerShell:
 
    ```powershell
@@ -51,5 +51,7 @@ Trong `Restaurant.WebApp/appsettings.json`, chỉnh `Restaurant:ServiceFeeRate`.
 - Đặt bàn và kiểm tra sức chứa / trùng lịch trong khung 2 giờ.
 - Xem menu, chỉ chọn món đang phục vụ và gọi món cho bàn đang mở.
 - Quản trị bàn, mở bàn, đóng hóa đơn và xuất hóa đơn `.xlsx` từ dữ liệu SQL Server.
+- Dashboard quản trị: doanh thu 7 ngày, bill trung bình, công suất bàn, món bán chạy, lượt khách check-in và tỷ lệ khách quay lại.
+- Lịch sử bill đã thanh toán: lọc theo ngày, xem chi tiết, hình thức thanh toán và in phiếu nội bộ.
 - Quản trị thực đơn: thêm, sửa, xóa và bật/tắt món.
 - Các sơ đồ PlantUML nằm trong thư mục `Docs/`.

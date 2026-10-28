@@ -57,6 +57,12 @@
         <AuthorizeView Roles="Admin">
             <Authorized>
                 <div class="nav-item">
+                    <NavLink class="nav-link" href="admin/dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Tổng quan</span>
+                    </NavLink>
+                </div>
+                <div class="nav-item">
                     <NavLink class="nav-link" href="admin/tables">
                         <span class="nav-icon">🪑</span>
                         <span class="nav-text">Sơ Đồ Bàn (Thu ngân)</span>
@@ -66,6 +72,12 @@
                     <NavLink class="nav-link" href="admin/menu">
                         <span class="nav-icon">📝</span>
                         <span class="nav-text">Quản lý thực đơn</span>
+                    </NavLink>
+                </div>
+                <div class="nav-item">
+                    <NavLink class="nav-link" href="admin/invoices">
+                        <span class="nav-icon">🧾</span>
+                        <span class="nav-text">Lịch sử hóa đơn</span>
                     </NavLink>
                 </div>
             </Authorized>

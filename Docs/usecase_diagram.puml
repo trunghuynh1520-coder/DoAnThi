@@ -17,6 +17,8 @@ rectangle "Hệ Thống Nhà Hàng Món Huế" {
     usecase "UC07: Đóng Hóa Đơn & Thanh Toán (phí cấu hình)" as UC_CloseOrder
     usecase "UC08: Quản lý thực đơn & tình trạng món" as UC_ManageMenu
     usecase "Đăng Nhập Quản Trị (Cookie Auth)" as UC_Login
+    usecase "UC09: Xem doanh thu & xu hướng khách" as UC_Dashboard
+    usecase "UC10: Tra cứu & in phiếu thanh toán" as UC_Invoices
 }
 
 Customer --> UC_ViewMenu
@@ -29,10 +31,14 @@ Admin --> UC_OpenTable
 Admin --> UC_ExportBill
 Admin --> UC_CloseOrder
 Admin --> UC_ManageMenu
+Admin --> UC_Dashboard
+Admin --> UC_Invoices
 
 UC_ManageTables ..> UC_Login : <<include>>
 UC_OpenTable ..> UC_Login : <<include>>
 UC_CloseOrder ..> UC_Login : <<include>>
 UC_ExportBill ..> UC_Login : <<include>>
+UC_Dashboard ..> UC_Login : <<include>>
+UC_Invoices ..> UC_Login : <<include>>
 
 @enduml

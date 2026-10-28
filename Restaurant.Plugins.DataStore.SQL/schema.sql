@@ -1,6 +1,6 @@
 -- 1. File này giữ vai trò là Script khởi tạo CSDL cho DataStore Plugin.
 -- 2. Tương ứng với: Script tạo bảng bên dự án eShop.
--- 3. Trả lời GV: "Script này tạo 6 bảng chuẩn 3NF có khóa ngoại đầy đủ, phục vụ việc lưu trữ dữ liệu cho ứng dụng Nhà hàng món Huế."
+-- 3. Tạo 6 bảng nghiệp vụ, có khóa ngoại đầy đủ, phục vụ ứng dụng Nhà hàng món Huế.
 
 CREATE TABLE MenuCategory (
     CategoryId INT IDENTITY(1,1) PRIMARY KEY,
@@ -34,6 +34,8 @@ CREATE TABLE Reservation (
     PhoneNumber NVARCHAR(20) NOT NULL,
     ReservationTime DATETIME NOT NULL,
     GuestCount INT NOT NULL,
+    Status NVARCHAR(20) NOT NULL CONSTRAINT DF_Reservation_Status DEFAULT N'Confirmed',
+    CheckedInAt DATETIME2 NULL,
     FOREIGN KEY (TableId) REFERENCES DiningTable(TableId)
 );
 
@@ -41,7 +43,9 @@ CREATE TABLE TableOrder (
     OrderId INT IDENTITY(1,1) PRIMARY KEY,
     TableId INT NOT NULL,
     OrderDate DATETIME NOT NULL,
+    ClosedAt DATETIME2 NULL,
     IsClosed BIT NOT NULL DEFAULT 0,
+    PaymentMethod NVARCHAR(50) NULL,
     TotalAmount FLOAT NOT NULL DEFAULT 0,
     FOREIGN KEY (TableId) REFERENCES DiningTable(TableId)
 );
@@ -55,6 +59,8 @@ CREATE TABLE TableOrderLine (
     FOREIGN KEY (OrderId) REFERENCES TableOrder(OrderId),
     FOREIGN KEY (ItemId) REFERENCES MenuItem(ItemId)
 );
+
+
 
 -- Dữ liệu mẫu cho Menu
 INSERT INTO MenuCategory (Name, Description) VALUES (N'Món Nước', N'Các loại bún, phở đặc sản Huế');

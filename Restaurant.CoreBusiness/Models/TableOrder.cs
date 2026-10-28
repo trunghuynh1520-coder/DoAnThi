@@ -14,7 +14,9 @@ public class TableOrder
     public int OrderId { get; set; }
     public int TableId { get; set; }
     public DateTime OrderDate { get; set; } = DateTime.Now;
+    public DateTime? ClosedAt { get; set; }
     public bool IsClosed { get; set; }
+    public string PaymentMethod { get; set; } = string.Empty;
     
     // Thuộc tính để lưu tổng tiền sau khi đóng
     public double TotalAmount { get; set; }
@@ -65,5 +67,6 @@ public class TableOrder
         double serviceFee = subTotal * serviceFeeRate;
         TotalAmount = subTotal + serviceFee;
         IsClosed = true;
+        ClosedAt = DateTime.Now;
     }
 }

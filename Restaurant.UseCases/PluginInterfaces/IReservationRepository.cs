@@ -15,4 +15,6 @@ public interface IReservationRepository
     Task<IEnumerable<Reservation>> GetReservationsForTableAsync(int tableId, DateTime reservationTime);
     Task AddReservationAsync(Reservation reservation);
     Task<IEnumerable<Reservation>> GetTodayReservationsAsync();
+    Task<Reservation?> GetReservationByIdAsync(int reservationId);
+    Task UpdateReservationStatusAsync(Reservation reservation);
 }

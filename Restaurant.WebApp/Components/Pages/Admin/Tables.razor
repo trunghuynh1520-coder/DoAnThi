@@ -9,6 +9,7 @@
 @inject ITableOrderRepository OrderRepository
 @inject IConfiguration Configuration
 @inject IJSRuntime JSRuntime
+@inject UpdateReservationStatusUseCase UpdateReservationStatusUseCase
 @rendermode InteractiveServer
 
 <PageTitle>Sơ Đồ Bàn - Quản Trị Thu Ngân | Nhà Hàng Món Huế</PageTitle>
@@ -194,6 +195,9 @@ else
                     <option value="upcoming">Sắp đến</option>
                     <option value="grace">Đang giữ bàn</option>
                     <option value="elapsed">Quá giờ giữ bàn</option>
+                    <option value="arrived">Đã đến</option>
+                    <option value="cancelled">Đã hủy</option>
+                    <option value="noshow">Không đến</option>
                 </select>
             </div>
         </div>
@@ -218,6 +222,7 @@ else
                             <th style="color:var(--color-gold,#d4a352);">Giờ đến</th>
                             <th style="color:var(--color-gold,#d4a352);">Số khách</th>
                             <th style="color:var(--color-gold,#d4a352);">Tình trạng</th>
+                            <th style="color:var(--color-gold,#d4a352);">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -232,6 +237,23 @@ else
                                 <td>🕐 <strong>@res.ReservationTime.ToString("HH:mm")</strong></td>
                                 <td>👥 @res.GuestCount người</td>
                                 <td><span class="badge @GetReservationStatusClass(res)">@GetReservationStatus(res)</span></td>
+                                <td>
+                                    @if (res.Status == Reservation.ConfirmedStatus)
+                                    {
+                                        <div class="reservation-action-group">
+                                            <button class="btn btn-sm btn-success" @onclick="() => ChangeReservationStatus(res, Reservation.ArrivedStatus)" disabled="@isLoading">Khách đã đến</button>
+                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => ChangeReservationStatus(res, Reservation.CancelledStatus)" disabled="@isLoading">Hủy</button>
+                                            @if (res.ReservationTime <= DateTime.Now.AddMinutes(-20))
+                                            {
+                                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => ChangeReservationStatus(res, Reservation.NoShowStatus)" disabled="@isLoading">Không đến</button>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Đã ghi nhận</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -279,9 +301,12 @@ else
             var now = DateTime.Now;
             results = reservationFilter switch
             {
-                "upcoming" => results.Where(r => r.ReservationTime > now),
-                "grace" => results.Where(r => r.ReservationTime <= now && r.ReservationTime >= now.AddMinutes(-20)),
-                "elapsed" => results.Where(r => r.ReservationTime < now.AddMinutes(-20)),
+                "upcoming" => results.Where(r => r.Status == Reservation.ConfirmedStatus && r.ReservationTime > now),
+                "grace" => results.Where(r => r.Status == Reservation.ConfirmedStatus && r.ReservationTime <= now && r.ReservationTime >= now.AddMinutes(-20)),
+                "elapsed" => results.Where(r => r.Status == Reservation.ConfirmedStatus && r.ReservationTime < now.AddMinutes(-20)),
+                "arrived" => results.Where(r => r.Status == Reservation.ArrivedStatus),
+                "cancelled" => results.Where(r => r.Status == Reservation.CancelledStatus),
+                "noshow" => results.Where(r => r.Status == Reservation.NoShowStatus),
                 _ => results
             };
 
@@ -302,14 +327,18 @@ else
     {
         var now = DateTime.Now;
         var holdUntil = now.AddMinutes(-20);
-        return todayReservations?.Where(r => r.TableId == tableId && r.ReservationTime >= holdUntil && r.ReservationTime <= now.AddHours(2)).ToList() ?? new();
+        return todayReservations?.Where(r => r.TableId == tableId && r.Status == Reservation.ConfirmedStatus && r.ReservationTime >= holdUntil && r.ReservationTime <= now.AddHours(2)).ToList() ?? new();
     }
 
     private bool IsReservationInGracePeriod(int tableId) =>
-        todayReservations?.Any(r => r.TableId == tableId && r.ReservationTime <= DateTime.Now && r.ReservationTime >= DateTime.Now.AddMinutes(-20)) == true;
+        todayReservations?.Any(r => r.TableId == tableId && r.Status == Reservation.ConfirmedStatus && r.ReservationTime <= DateTime.Now && r.ReservationTime >= DateTime.Now.AddMinutes(-20)) == true;
 
     private static string GetReservationStatus(Reservation reservation)
     {
+        if (reservation.Status == Reservation.ArrivedStatus) return "Đã đến";
+        if (reservation.Status == Reservation.CancelledStatus) return "Đã hủy";
+        if (reservation.Status == Reservation.NoShowStatus) return "Không đến";
+
         var now = DateTime.Now;
         if (reservation.ReservationTime > now) return "Sắp đến";
         if (reservation.ReservationTime >= now.AddMinutes(-20)) return "Đang giữ bàn";
@@ -319,6 +348,9 @@ else
     private static string GetReservationStatusClass(Reservation reservation) =>
         GetReservationStatus(reservation) switch
         {
+            "Đã đến" => "reservation-status-arrived",
+            "Đã hủy" => "reservation-status-cancelled",
+            "Không đến" => "reservation-status-noshow",
             "Sắp đến" => "reservation-status-upcoming",
             "Đang giữ bàn" => "reservation-status-grace",
             _ => "reservation-status-past"
@@ -362,6 +394,34 @@ else
         catch (Exception ex)
         {
             errorMessage = "Lỗi khi mở bàn: " + ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ChangeReservationStatus(Reservation reservation, string status)
+    {
+        if (isLoading) return;
+        isLoading = true;
+        errorMessage = "";
+        successMessage = "";
+        try
+        {
+            await UpdateReservationStatusUseCase.ExecuteAsync(reservation.ReservationId, status);
+            successMessage = status switch
+            {
+                Reservation.ArrivedStatus => $"Đã ghi nhận khách {reservation.CustomerName} đến nhà hàng.",
+                Reservation.CancelledStatus => $"Đã hủy lịch của khách {reservation.CustomerName}.",
+                Reservation.NoShowStatus => $"Đã ghi nhận khách {reservation.CustomerName} không đến.",
+                _ => "Đã cập nhật lịch đặt bàn."
+            };
+            await LoadTables();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
         }
         finally
         {
@@ -441,7 +501,7 @@ else
         successMessage = "";
         try
         {
-            await CloseTableOrderUseCase.ExecuteAsync(paymentTableId);
+            await CloseTableOrderUseCase.ExecuteAsync(paymentTableId, "Chuyển khoản QR (demo)");
             showPaymentDialog = false;
             successMessage = $"Đã xác nhận nhận tiền và đóng hóa đơn Bàn {paymentTableNumber}. Bàn đã trở về trạng thái trống.";
             await LoadTables();

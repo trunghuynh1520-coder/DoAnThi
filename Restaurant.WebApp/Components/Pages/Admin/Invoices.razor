@@ -1,0 +1,114 @@
+@page "/admin/invoices"
+@layout AdminLayout
+@using Microsoft.AspNetCore.Authorization
+@using Restaurant.UseCases.Models
+@attribute [Authorize(Roles = "Admin")]
+@inject GetInvoiceHistoryUseCase InvoiceUseCase
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Lịch sử hóa đơn | Nhà Hàng Món Huế</PageTitle>
+
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div><div class="section-label">THU NGÂN</div><h1 class="mb-1">Lịch sử hóa đơn</h1><p class="page-subtitle mb-0">Tra cứu bill đã thanh toán và in phiếu thanh toán nội bộ.</p></div>
+    <a class="btn btn-outline-hue" href="/admin/tables">← Sơ đồ bàn</a>
+</div>
+
+<section class="report-panel mb-4">
+    <div class="invoice-filter-row">
+        <label>Từ ngày<input class="form-control" type="date" @bind="fromDate" /></label>
+        <label>Đến ngày<input class="form-control" type="date" @bind="toDate" /></label>
+        <button class="btn btn-primary align-self-end" @onclick="LoadInvoices" disabled="@loading">Lọc hóa đơn</button>
+        <span class="invoice-count align-self-end">@invoices.Count bill</span>
+    </div>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <div class="alert alert-danger">@error</div>
+}
+else if (loading)
+{
+    <div class="loading-box">Đang tải lịch sử hóa đơn...</div>
+}
+else if (invoices.Count == 0)
+{
+    <div class="report-panel report-empty">Không có hóa đơn đã thanh toán trong khoảng ngày đã chọn.</div>
+}
+else
+{
+    <section class="report-panel">
+        <div class="table-responsive">
+            <table class="table invoice-history-table align-middle mb-0">
+                <thead><tr><th>Mã bill</th><th>Bàn</th><th>Giờ thanh toán</th><th>Số món</th><th class="text-end">Tổng tiền</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var invoice in invoices)
+                    {
+                        <tr>
+                            <td><strong>#HD-@invoice.OrderId.ToString("D5")</strong></td>
+                            <td>Bàn @invoice.TableNumber</td>
+                            <td>@(invoice.ClosedAt?.ToString("dd/MM/yyyy HH:mm") ?? invoice.OrderDate.ToString("dd/MM/yyyy HH:mm"))</td>
+                            <td>@invoice.ItemCount phần</td>
+                            <td class="text-end fw-bold">@invoice.TotalAmount.ToString("N0")₫</td>
+                            <td class="text-end"><button class="btn btn-sm btn-outline-hue" @onclick="() => ShowInvoice(invoice)">Chi tiết</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+
+@if (selectedInvoice is not null)
+{
+    <div class="invoice-detail-backdrop" @onclick="CloseDetails">
+        <section class="invoice-print-area" role="dialog" aria-modal="true" aria-labelledby="invoice-title" @onclick:stopPropagation="true">
+            <div class="invoice-detail-actions"><button class="btn btn-sm btn-outline-secondary" @onclick="CloseDetails">Đóng</button><button class="btn btn-sm btn-primary" @onclick="PrintInvoice">In phiếu</button></div>
+            <div class="receipt-heading"><span class="receipt-brand">🏮 MÓN HUẾ</span><small>ẨM THỰC CỐ ĐÔ</small><h2 id="invoice-title">PHIẾU THANH TOÁN</h2></div>
+            <div class="receipt-meta"><span>Mã bill</span><strong>HD-@selectedInvoice.OrderId.ToString("D5")</strong><span>Bàn</span><strong>@selectedInvoice.TableNumber</strong><span>Giờ vào</span><strong>@selectedInvoice.OrderDate.ToString("dd/MM/yyyy HH:mm")</strong><span>Thanh toán</span><strong>@(selectedInvoice.ClosedAt?.ToString("dd/MM/yyyy HH:mm") ?? selectedInvoice.OrderDate.ToString("dd/MM/yyyy HH:mm"))</strong><span>Hình thức</span><strong>@(string.IsNullOrWhiteSpace(selectedInvoice.PaymentMethod) ? "Chưa lưu" : selectedInvoice.PaymentMethod)</strong></div>
+            <div class="table-responsive"><table class="table receipt-lines"><thead><tr><th>Món</th><th>SL</th><th class="text-end">Thành tiền</th></tr></thead><tbody>
+                @foreach (var line in selectedLines)
+                {
+                    <tr><td>@line.ItemName</td><td>@line.Quantity</td><td class="text-end">@((line.UnitPrice * line.Quantity).ToString("N0"))₫</td></tr>
+                }
+            </tbody></table></div>
+            <div class="receipt-totals"><div><span>Tạm tính</span><strong>@Subtotal.ToString("N0")₫</strong></div><div><span>Phí phục vụ</span><strong>@((selectedInvoice.TotalAmount - Subtotal).ToString("N0"))₫</strong></div><div class="receipt-grand-total"><span>Tổng thanh toán</span><strong>@selectedInvoice.TotalAmount.ToString("N0")₫</strong></div></div>
+            <p class="receipt-thanks">Cảm ơn quý khách. Hẹn gặp lại!</p>
+            <p class="receipt-disclaimer">Phiếu thanh toán nội bộ · Không phải hóa đơn VAT</p>
+        </section>
+    </div>
+}
+
+@code {
+    private List<InvoiceHistoryItem> invoices = new();
+    private InvoiceHistoryItem? selectedInvoice;
+    private List<InvoiceLineDetail> selectedLines = new();
+    private DateTime fromDate = DateTime.Today.AddDays(-29);
+    private DateTime toDate = DateTime.Today;
+    private bool loading;
+    private string error = string.Empty;
+    private double Subtotal => selectedLines.Sum(line => line.UnitPrice * line.Quantity);
+
+    protected override Task OnInitializedAsync() => LoadInvoices();
+
+    private async Task LoadInvoices()
+    {
+        loading = true;
+        error = string.Empty;
+        try
+        {
+            if (fromDate.Date > toDate.Date) throw new InvalidOperationException("Ngày bắt đầu phải trước hoặc trùng ngày kết thúc.");
+            invoices = (await InvoiceUseCase.ExecuteAsync(fromDate.Date, toDate.Date.AddDays(1))).ToList();
+        }
+        catch (Exception ex) { error = $"Không tải được hóa đơn: {ex.Message}"; }
+        finally { loading = false; }
+    }
+
+    private async Task ShowInvoice(InvoiceHistoryItem invoice)
+    {
+        selectedInvoice = invoice;
+        selectedLines = (await InvoiceUseCase.GetLinesAsync(invoice.OrderId)).ToList();
+    }
+
+    private void CloseDetails() => selectedInvoice = null;
+    private Task PrintInvoice() => JSRuntime.InvokeVoidAsync("window.print").AsTask();
+}

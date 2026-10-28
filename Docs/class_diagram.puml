@@ -35,8 +35,13 @@ package "CoreBusiness (Entities & Rules)" {
         +string PhoneNumber
         +DateTime ReservationTime
         +int GuestCount
+        +string Status
+        +DateTime? CheckedInAt
         +DiningTable Table
         +bool IsValidReservation(DiningTable table, List<Reservation> existing)
+        +MarkArrived()
+        +Cancel()
+        +MarkNoShow(now)
     }
 
     class TableOrder {
@@ -44,11 +49,14 @@ package "CoreBusiness (Entities & Rules)" {
         +int TableId
         +DateTime OrderDate
         +bool IsClosed
+        +DateTime? ClosedAt
+        +string PaymentMethod
         +double TotalAmount
         +List<TableOrderLine> OrderLines
         +void AddLineItem(int itemId, double price, int qty, DiningTable table)
         +void CloseOrder(double serviceFeeRate)
     }
+
 
     class TableOrderLine {
         +int OrderLineId
@@ -89,6 +97,12 @@ package "UseCases (Application Logic & Interfaces)" {
     interface IReservationRepository {
         +AddReservationAsync(reservation)
         +GetReservationsForTableAsync(tableId, reservationTime)
+        +UpdateReservationStatusAsync(id, status, checkedInAt)
+    }
+    interface IAdminReportRepository {
+        +GetDashboardAsync(now)
+        +GetInvoiceHistoryAsync(from, to)
+        +GetInvoiceLinesAsync(orderId)
     }
 
     class PlaceTableOrderUseCase {
@@ -110,6 +124,9 @@ package "UseCases (Application Logic & Interfaces)" {
         +UpdateAsync(item)
         +DeleteAsync(id)
     }
+    class UpdateReservationStatusUseCase
+    class GetAdminDashboardUseCase
+    class GetInvoiceHistoryUseCase
 
     PlaceTableOrderUseCase ..> ITableOrderRepository
     PlaceTableOrderUseCase ..> IDiningTableRepository
@@ -121,6 +138,9 @@ package "UseCases (Application Logic & Interfaces)" {
     ExportBillUseCase ..> ITableOrderRepository
     ExportBillUseCase ..> IMenuItemRepository
     ManageMenuItemsUseCase ..> IMenuItemRepository
+    UpdateReservationStatusUseCase ..> IReservationRepository
+    GetAdminDashboardUseCase ..> IAdminReportRepository
+    GetInvoiceHistoryUseCase ..> IAdminReportRepository
 }
 
 package "Plugins.DataStore.SQL (Infrastructure)" {
@@ -128,6 +148,7 @@ package "Plugins.DataStore.SQL (Infrastructure)" {
     class DiningTableRepository implements IDiningTableRepository
     class MenuItemRepository implements IMenuItemRepository
     class ReservationRepository implements IReservationRepository
+    class AdminReportRepository implements IAdminReportRepository
 }
 
 @enduml

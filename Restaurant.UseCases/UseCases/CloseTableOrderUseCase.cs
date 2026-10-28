@@ -22,13 +22,14 @@ public class CloseTableOrderUseCase
         _serviceFeeRate = serviceFeeRate;
     }
 
-    public async Task ExecuteAsync(int tableId)
+    public async Task ExecuteAsync(int tableId, string paymentMethod = "Chưa ghi nhận")
     {
         var activeOrder = await _orderRepository.GetActiveOrderForTableAsync(tableId);
         if (activeOrder == null) throw new Exception("Không tìm thấy hóa đơn nào đang mở cho bàn này.");
 
         // Gọi Business Rule để đóng hóa đơn và tính tổng tiền
         activeOrder.CloseOrder(_serviceFeeRate);
+        activeOrder.PaymentMethod = paymentMethod;
 
         await _orderRepository.UpdateOrderAsync(activeOrder);
         

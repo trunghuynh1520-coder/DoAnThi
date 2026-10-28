@@ -27,8 +27,17 @@ public class DiningTableRepository : IDiningTableRepository
         const string sql = @"
 IF COL_LENGTH('dbo.DiningTable', 'OccupiedSince') IS NULL
     ALTER TABLE dbo.DiningTable ADD OccupiedSince DATETIME2 NULL;
+IF COL_LENGTH('dbo.TableOrder', 'ClosedAt') IS NULL
+    ALTER TABLE dbo.TableOrder ADD ClosedAt DATETIME2 NULL;
+IF COL_LENGTH('dbo.TableOrder', 'PaymentMethod') IS NULL
+    ALTER TABLE dbo.TableOrder ADD PaymentMethod NVARCHAR(50) NULL;
+IF COL_LENGTH('dbo.Reservation', 'Status') IS NULL
+    ALTER TABLE dbo.Reservation ADD Status NVARCHAR(20) NOT NULL CONSTRAINT DF_Reservation_Status DEFAULT N'Confirmed';
+IF COL_LENGTH('dbo.Reservation', 'CheckedInAt') IS NULL
+    ALTER TABLE dbo.Reservation ADD CheckedInAt DATETIME2 NULL;
 IF COL_LENGTH('dbo.MenuItem', 'IsAvailable') IS NULL
-    ALTER TABLE dbo.MenuItem ADD IsAvailable BIT NOT NULL CONSTRAINT DF_MenuItem_IsAvailable DEFAULT 1;";
+    ALTER TABLE dbo.MenuItem ADD IsAvailable BIT NOT NULL CONSTRAINT DF_MenuItem_IsAvailable DEFAULT 1;
+";
         await connection.ExecuteAsync(sql);
     }
 

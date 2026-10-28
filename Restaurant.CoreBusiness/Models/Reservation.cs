@@ -11,12 +11,19 @@ namespace Restaurant.CoreBusiness;
 /// </summary>
 public class Reservation
 {
+    public const string ConfirmedStatus = "Confirmed";
+    public const string ArrivedStatus = "Arrived";
+    public const string CancelledStatus = "Cancelled";
+    public const string NoShowStatus = "NoShow";
+
     public int ReservationId { get; set; }
     public int TableId { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public DateTime ReservationTime { get; set; }
     public int GuestCount { get; set; }
+    public string Status { get; set; } = ConfirmedStatus;
+    public DateTime? CheckedInAt { get; set; }
 
     // Navigation property
     public DiningTable? Table { get; set; }
@@ -39,5 +46,35 @@ public class Reservation
             }
         }
         return true;
+    }
+
+    public void MarkArrived()
+    {
+        EnsureCanChangeStatus();
+        Status = ArrivedStatus;
+        CheckedInAt = DateTime.Now;
+    }
+
+    public void Cancel()
+    {
+        EnsureCanChangeStatus();
+        Status = CancelledStatus;
+        CheckedInAt = null;
+    }
+
+    public void MarkNoShow(DateTime now)
+    {
+        EnsureCanChangeStatus();
+        if (ReservationTime > now.AddMinutes(-20))
+            throw new InvalidOperationException("Chỉ đánh dấu không đến sau khi khách đã trễ ít nhất 20 phút.");
+
+        Status = NoShowStatus;
+        CheckedInAt = null;
+    }
+
+    private void EnsureCanChangeStatus()
+    {
+        if (Status != ConfirmedStatus)
+            throw new InvalidOperationException("Chỉ lịch đặt đã xác nhận mới có thể cập nhật trạng thái.");
     }
 }

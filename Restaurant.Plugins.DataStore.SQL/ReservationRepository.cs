@@ -31,11 +31,28 @@ public class ReservationRepository : IReservationRepository
         await connection.ExecuteAsync(sql, reservation);
     }
 
+    public async Task<Reservation?> GetReservationByIdAsync(int reservationId)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        const string sql = "SELECT * FROM dbo.Reservation WHERE ReservationId = @reservationId";
+        return await connection.QueryFirstOrDefaultAsync<Reservation>(sql, new { reservationId });
+    }
+
+    public async Task UpdateReservationStatusAsync(Reservation reservation)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        const string sql = @"UPDATE dbo.Reservation
+                             SET Status = @Status, CheckedInAt = @CheckedInAt
+                             WHERE ReservationId = @ReservationId";
+        await connection.ExecuteAsync(sql, reservation);
+    }
+
     public async Task<IEnumerable<Reservation>> GetReservationsForTableAsync(int tableId, DateTime reservationTime)
     {
         using var connection = new SqlConnection(_connectionString);
         const string sql = @"SELECT * FROM Reservation
                              WHERE TableId = @tableId
+                               AND Status NOT IN ('Cancelled', 'NoShow')
                                AND ReservationTime >= DATEADD(hour, -2, @reservationTime)
                                AND ReservationTime <= DATEADD(hour, 2, @reservationTime)";
         return await connection.QueryAsync<Reservation>(sql, new { tableId, reservationTime });

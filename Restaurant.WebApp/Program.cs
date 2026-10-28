@@ -33,17 +33,21 @@ builder.Services.AddTransient<IMenuItemRepository>(sp => new MenuItemRepository(
 builder.Services.AddTransient<IDiningTableRepository>(sp => new DiningTableRepository(connectionString));
 builder.Services.AddTransient<IReservationRepository>(sp => new ReservationRepository(connectionString));
 builder.Services.AddTransient<ITableOrderRepository>(sp => new TableOrderRepository(connectionString));
+builder.Services.AddTransient<IAdminReportRepository>(sp => new AdminReportRepository(connectionString));
 builder.Services.AddTransient<ManageMenuItemsUseCase>();
 
 // 4. DI Use Cases
 builder.Services.AddTransient<ViewMenuItemsUseCase>();
 builder.Services.AddTransient<CreateReservationUseCase>();
+builder.Services.AddTransient<UpdateReservationStatusUseCase>();
 builder.Services.AddTransient<PlaceTableOrderUseCase>();
 builder.Services.AddTransient<CloseTableOrderUseCase>(sp => new CloseTableOrderUseCase(
     sp.GetRequiredService<ITableOrderRepository>(), sp.GetRequiredService<IDiningTableRepository>(), serviceFeeRate));
 builder.Services.AddTransient<ExportBillUseCase>(sp => new ExportBillUseCase(
     sp.GetRequiredService<ITableOrderRepository>(), sp.GetRequiredService<IDiningTableRepository>(),
     sp.GetRequiredService<IMenuItemRepository>(), serviceFeeRate));
+builder.Services.AddTransient<GetAdminDashboardUseCase>();
+builder.Services.AddTransient<GetInvoiceHistoryUseCase>();
 
 // 5. Scoped State (ShoppingCart equivalent)
 builder.Services.AddScoped<ScopedOrderState>();
